@@ -1,17 +1,17 @@
-# Daily Challenges
+# Kadai
 ## Documento de definición del proyecto
 **Asignatura:** Programación de Aplicaciones Móviles Nativas (PAMN)  
 **Titulación:** Ingeniería Informática  
 **Plataforma objetivo:** Android  
-**Versión del documento:** 1.1  
+**Versión del documento:** 1.2  
 **Estado:** Especificación inicial del proyecto  
-**Nombre:** Daily Challenges (provisional)
+**Nombre:** Kadai (provisional)
 
 ---
 
 ## 1. Resumen del proyecto
 
-Daily Challenges es una aplicación móvil nativa para Android orientada a fomentar la interacción y la competición amistosa entre grupos de amigos mediante retos diarios.
+Kadai es una aplicación móvil nativa para Android orientada a fomentar la interacción y la competición amistosa entre grupos de amigos mediante retos diarios.
 
 Los usuarios pueden crear o pertenecer a varios grupos privados. Cada día, la aplicación publica un reto común para todos los grupos. Los miembros intentan completarlo y suben una fotografía o un vídeo como prueba. Los demás integrantes de cada grupo valoran individualmente si la prueba es válida.
 
@@ -765,7 +765,7 @@ Aunque el funcionamiento principal está definido, antes de cerrar el diseño t�
 
 ## 16. Conclusión
 
-Daily Challenges propone una aplicación Android nativa centrada en la competición amistosa entre grupos de amigos. Su característica principal es combinar retos diarios globales con pruebas multimedia y validación independiente por cada grupo.
+Kadai propone una aplicación Android nativa centrada en la competición amistosa entre grupos de amigos. Su característica principal es combinar retos diarios globales con pruebas multimedia y validación independiente por cada grupo.
 
 La aplicación utiliza Kotlin, Jetpack Compose y Firebase, con una arquitectura organizada por capas. Las operaciones críticas, como la validación de pruebas, el cálculo de puntuaciones y la actualización de rankings, se delegan al backend para mantener la integridad de los resultados.
 
