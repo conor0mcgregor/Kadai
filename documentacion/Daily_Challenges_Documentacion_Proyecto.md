@@ -3,7 +3,7 @@
 **Asignatura:** Programación de Aplicaciones Móviles Nativas (PAMN)  
 **Titulación:** Ingeniería Informática  
 **Plataforma objetivo:** Android  
-**Versión del documento:** 1.0  
+**Versión del documento:** 1.1  
 **Estado:** Especificación inicial del proyecto  
 **Nombre:** Daily Challenges (provisional)
 
@@ -411,33 +411,33 @@ Los requisitos funcionales describen las operaciones que debe ofrecer la aplicac
 | Firebase Storage | Fotografías y vídeos. |
 | Cloud Functions | Publicación de retos, cierre, validación y puntuaciones. |
 | Firebase Cloud Messaging | Notificaciones push. |
-
 ### 8.3. Arquitectura general
 
-Se propone una arquitectura MVVM combinada con principios de Clean Architecture.
+Se propone utilizar **MVVM combinado con principios de Clean Architecture**, buscando una estructura modular, mantenible y preparada para futuras ampliaciones, sin introducir complejidad innecesaria.
 
-Las responsabilidades se separarán en tres capas:
+La aplicación se organizará en tres capas principales:
 
-**Presentation**
-- Pantallas de Jetpack Compose.
-- Componentes reutilizables.
-- ViewModels.
-- Estados de interfaz y eventos.
+**Presentation (MVVM)**
+- Pantallas desarrolladas con Jetpack Compose.
+- Componentes de interfaz reutilizables.
+- ViewModels encargados de gestionar el estado de cada pantalla.
+- Gestión de eventos e interacción del usuario.
 
 **Domain**
-- Modelos de dominio.
-- Casos de uso.
-- Reglas de negocio.
-- Interfaces de repositorios.
+- Modelos y entidades del dominio.
+- Casos de uso que representan las operaciones principales de la aplicación.
+- Reglas y lógica de negocio.
+- Interfaces de repositorios que definen las operaciones necesarias para acceder a los datos.
 
 **Data**
-- Implementaciones de repositorios.
-- Fuentes de datos de Firebase.
-- Modelos DTO y mapeadores.
-- Acceso a Firestore, Storage y Authentication.
+- Implementaciones de las interfaces de repositorios.
+- Fuentes de datos y servicios externos.
+- Modelos DTO y mecanismos de conversión hacia los modelos de dominio.
+- Integración con Firebase Authentication, Cloud Firestore y Firebase Storage.
 
-La aplicación Android no será responsable de decidir unilateralmente resultados, puntos o permisos. Las operaciones críticas se verificarán en Cloud Functions y mediante reglas de seguridad.
+Las dependencias se organizarán de forma que el dominio no dependa de tecnologías externas. De esta manera, los servicios de Firebase podrán sustituirse o modificarse sin afectar directamente a la lógica principal de la aplicación.
 
+La aplicación Android no será responsable de decidir unilateralmente resultados, puntuaciones o permisos. Las operaciones críticas se validarán en el backend mediante Cloud Functions y las reglas de seguridad de Firebase, evitando que los clientes puedan manipular directamente estos datos.
 ## 9. Modelo conceptual de datos
 
 La siguiente es una primera propuesta conceptual. La estructura definitiva de colecciones y documentos se diseñará antes de implementar Firestore.

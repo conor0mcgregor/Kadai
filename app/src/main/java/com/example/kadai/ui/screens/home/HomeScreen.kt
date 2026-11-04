@@ -280,8 +280,8 @@ fun HomeScreen(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 ModernDailyChallengeCard(
-                    title = "Aprende a decir \"gracias\" en 5 idiomas",
-                    description = "Graba un video corto o foto mostrando cómo pronuncias 'gracias' en 5 lenguas diferentes. ¡Suma puntos por rapidez!",
+                    title = "Grita en medio de la calle",
+                    description = "Sube un video gritando en medio de la calle, cuando antes lo hagas, mas puntos te llevas",
                     timeRemaining = "08:24:15",
                     participantsText = "4 de 5 han participado",
                     onChallengeClick = onChallengeClick,
@@ -385,15 +385,6 @@ private fun ModernHomeHeader(
                     color = Color.White
                 )
 
-                // Indicador de conexión en vivo
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(Success)
-                        .border(1.5.dp, Background, CircleShape)
-                        .align(Alignment.BottomEnd)
-                )
             }
 
             Column {
@@ -506,19 +497,15 @@ private fun ModernStatCol(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (iconPrefix.isNotEmpty()) {
-                Text(text = iconPrefix, fontSize = 13.sp)
-            }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.4).sp
-                ),
-                color = valueColor
-            )
-        }
+
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-0.4).sp
+            ),
+            color = valueColor
+        )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
