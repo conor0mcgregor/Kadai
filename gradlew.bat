@@ -36,6 +36,11 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
 @rem Find java.exe
+@rem Kotlin 2.0 used by this project does not support running Gradle on JDK 25.
+@rem Prefer the JDK bundled with Android Studio (JBR 21) when it is available.
+set "ANDROID_STUDIO_JBR=%ProgramFiles%\Android\Android Studio\jbr"
+if exist "%ANDROID_STUDIO_JBR%\bin\java.exe" set "JAVA_HOME=%ANDROID_STUDIO_JBR%"
+
 if defined JAVA_HOME goto findJavaFromJavaHome
 
 set JAVA_EXE=java.exe

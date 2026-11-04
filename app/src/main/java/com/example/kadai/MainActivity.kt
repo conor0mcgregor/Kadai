@@ -4,13 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.kadai.ui.screens.home.HomeScreen
+import com.example.kadai.ui.screens.login.LoginScreen
 import com.example.kadai.ui.theme.KadaiTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,30 +19,61 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            KadaiTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            KadaiApp()
         }
     }
 }
 
+/**
+ * Punto de entrada de la app.
+ * Gestiona la navegación básica Login → Home para esta fase de diseño.
+ *
+ * En fases posteriores se sustituirá por NavHost con Navigation Compose
+ * y autenticación real vía Firebase Authentication.
+ */
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun KadaiApp() {
+    KadaiTheme {
+        // Estado provisional de autenticación — se reemplazará con ViewModel + Firebase
+        var isLoggedIn by rememberSaveable { mutableStateOf(false) }
+
+        if (isLoggedIn) {
+            HomeScreen(
+                userName = "Alex García",
+                userInitial = "A",
+                userPoints = 1840,
+                userRankPosition = 2,
+                challengesCount = 12,
+                streakDays = 7,
+                notifCount = 3
+            )
+        } else {
+            LoginScreen(
+                onLoginClick = { _, _ ->
+                    // TODO: conectar con Firebase Authentication
+                    isLoggedIn = true
+                },
+                onGoogleClick = {
+                    // TODO: Google Sign-In
+                    isLoggedIn = true
+                },
+                onRegisterClick = {
+                    // TODO: navegar a pantalla de registro
+                },
+                onForgotClick = {
+                    // TODO: pantalla de recuperación de contraseña
+                }
+            )
+        }
+    }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    name = "KADAI App",
+    showBackground = true,
+    backgroundColor = 0xFF0F0F12
+)
 @Composable
-fun GreetingPreview() {
-    KadaiTheme {
-        Greeting("Android")
-    }
+private fun KadaiAppPreview() {
+    KadaiApp()
 }
