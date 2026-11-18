@@ -12,21 +12,26 @@
 ## 1. Estado actual (inventario)
 
 ### Ya existe
-- [x] `MainActivity.kt`: navegación provisional con `isLoggedIn` (Login → Home) y TODOs de Firebase.
+- [x] `MainActivity.kt`: punto de entrada limpio, configura tema y delega en `KadaiApp()`.
+- [x] `app/KadaiApp.kt`: contenedor general con `Scaffold`, `NavHost` y barra inferior compartida.
+- [x] `ui/navigation/`: `Routes.kt` y `KadaiNavHost.kt` (Navigation Compose).
+- [x] `domain/model/`: 12 modelos de dominio (`User`, `Group`, `Membership`, `Challenge`, `DailyChallenge`, `Proof`, `GroupValidation`, `Vote`, `Score`, `Reaction`, `Favorite`, `Notification`).
+- [x] `domain/repository/`: 6 interfaces de repositorios puros (sin dependencias de Android/Firebase).
+- [x] `data/mock/MockData.kt`: datos mock centralizados para desarrollo sin Firebase.
+- [x] `data/repository/`: 6 implementaciones Fake con `StateFlow` reactivo.
+- [x] `di/AppContainer.kt`: inyección de dependencias manual.
+- [x] `ui/components/KadaiBottomNav.kt`: barra inferior de 5 ítems extraída como componente compartido.
 - [x] `ui/screens/login/LoginScreen.kt`: diseño completo, callbacks sin implementar.
-- [x] `ui/screens/home/HomeScreen.kt`: diseño completo con datos de ejemplo (`sampleGroups`, `sampleActivity`).
+- [x] `ui/screens/home/HomeScreen.kt`: diseño completo desacoplado de la barra inferior y navegación.
 - [x] `ui/components/KadaiComponents.kt`: `KadaiTextField`, `PulsingDot`, `RadialAccentBackground`, `MetaChip`.
 - [x] `ui/theme/`: `Color.kt`, `Type.kt`, `Shape.kt`, `Theme.kt` (tema oscuro KADAI).
-- [x] Proyecto Gradle configurado con Kotlin + Jetpack Compose (Material 3 + icons extended).
+- [x] Proyecto Gradle configurado con Kotlin + Jetpack Compose (Material 3 + icons extended + Navigation Compose).
 
 ### Falta para poder trabajar en paralelo
-- [ ] Grafo de navegación (Navigation Compose) y rutas centralizadas.
-- [ ] `MainActivity` como `NavHost` + barra inferior compartida (hoy la barra vive dentro de `HomeScreen`).
 - [ ] ViewModels por pantalla y `UiState` (carga / error / éxito).
-- [ ] Modelos de dominio y repositorios *fake* con datos mock (para no depender de Firebase).
 - [ ] El resto de pantallas (ver sección 3).
-- [ ] Componentes compartidos extraídos de Login/Home (ver sección 4).
-- [ ] Dependencias Gradle nuevas (ver sección 5.1).
+- [ ] Componentes compartidos restantes extraídos de Login/Home (ver sección 4).
+- [ ] Dependencias de carga de imágenes (Coil) y ciclo de vida (ver sección 5.1).
 
 ---
 
@@ -45,12 +50,13 @@
 
 | Módulo | Pantallas | Responsable | Estado |
 |---|---|---|---|
-| Navegación / infraestructura | T-01, T-02, T-03 |  |  |
+| Navegación / infraestructura | T-01, T-02, T-03 | Equipo | Terminado |
+| Dominio y Fake Repositories | T-06, T-07, T-08, T-09 | Equipo | Terminado |
 | Autenticación | P-01 a P-04 |  |  |
 | Reto y pruebas | P-05 a P-09 |  |  |
 | Grupos y ranking | P-10 a P-16 |  |  |
 | Perfil y social | P-17 a P-24 |  |  |
-| Componentes compartidos | C-01 a C-12 |  |  |
+| Componentes compartidos | C-01 a C-12 (C-01 completado) |  | En progreso |
 | Backend / Firebase (fase posterior) | F-01 a F-08 |  |  |
 
 ---
@@ -82,9 +88,9 @@
 
 ### 3.2. Inicio y reto diario
 
-- [ ] **P-05 · Inicio / Home** (`home`) · *existe, hay que adaptarla* · responsable: ___
-  - [ ] Extraer `ModernBottomNav` a `ui/components/KadaiBottomNav.kt` y usar un `Scaffold` compartido.
-  - [ ] Quitar el estado de navegación interno (`currentNavRoute`) y usar el `NavController`.
+- [ ] **P-05 · Inicio / Home** (`home`) · *existe, adaptada a Scaffold* · responsable: ___
+  - [x] Extraer `ModernBottomNav` a `ui/components/KadaiBottomNav.kt` y usar un `Scaffold` compartido.
+  - [x] Quitar el estado de navegación interno (`currentNavRoute`) y usar el `NavController`.
   - [ ] Los datos (`groups`, `activity`, retos del día) pasarán por parámetros/`UiState`, no `sample*`.
   - [ ] Conectar `onGroupClick`, `onChallengeClick`, `onAddGroupClick`, `onNotifClick`, `onProfileClick`.
 
@@ -197,7 +203,7 @@
 
 Extraer los que ya están dentro de pantallas y crear los que faltan. Todos en `ui/components/`.
 
-- [ ] **C-01** `KadaiBottomNav.kt` — extraer `ModernBottomNav` desde `HomeScreen` (5 ítems + badge).
+- [x] **C-01** `KadaiBottomNav.kt` — extraer `ModernBottomNav` desde `HomeScreen` (5 ítems + badge).
 - [ ] **C-02** `KadaiButtons.kt` — extraer `KadaiPrimaryButton` y `GoogleSignInButton` desde `LoginScreen`.
 - [ ] **C-03** `KadaiTextField.kt` — unificar `KadaiTextField` y el `PasswordTextField` local de Login (toggle ojo real).
 - [ ] **C-04** `KadaiTopBar.kt` — barra superior con título, volver y acción (la necesitan casi todas las pantallas nuevas).
@@ -216,18 +222,18 @@ Extraer los que ya están dentro de pantallas y crear los que faltan. Todos en `
 
 ### 5.1. Dependencias y configuración Gradle
 
-- [ ] **T-01** `MainActivity` como host único: `setContent { KadaiApp() }` con `NavHost`, `Scaffold` y barra inferior.
-- [ ] **T-02** `ui/navigation/Routes.kt` + `KadaiNavHost.kt`: constantes de rutas, argumentos (`groupId`, `proofId`, `dailyChallengeId`) y grafo completo P-01…P-25.
-- [ ] **T-03** Añadir `androidx.navigation:navigation-compose` al version catalog (`gradle/libs.versions.toml`) y a `app/build.gradle.kts`.
+- [x] **T-01** `MainActivity` como host único: `setContent { KadaiApp() }` con `NavHost`, `Scaffold` y barra inferior.
+- [x] **T-02** `ui/navigation/Routes.kt` + `KadaiNavHost.kt`: constantes de rutas centralizadas y grafo inicial (Login ↔ Home).
+- [x] **T-03** Añadir `androidx.navigation:navigation-compose` al version catalog (`gradle/libs.versions.toml`) y a `app/build.gradle.kts`.
 - [ ] **T-04** Añadir cargador de imágenes (Coil) y `lifecycle-viewmodel-compose` / `lifecycle-runtime-compose`.
 - [ ] **T-05** (Fase Firebase, más adelante) Plugin de Google Services, `google-services.json`, Firebase Auth, Firestore, Storage, Cloud Messaging y coroutines.
 
-### 5.2. Arquitectura (MVVM + Clean Architecture, doc §8.3)
+### 5.2. Arquitectura (Hexagonal / Clean Architecture, doc §8.3)
 
-- [ ] **T-06** Estructura de paquetes: `ui/` (Presentation), `domain/model`, `domain/usecase`, `domain/repository`, `data/repository`, `data/remote`.
-- [ ] **T-07** Modelos de dominio: `User`, `Group`, `Membership`, `Challenge`, `DailyChallenge`, `Proof`, `GroupValidation`, `Vote`, `Score`, `Reaction`, `Favorite`, `Notification` (doc §9).
-- [ ] **T-08** Interfaces de repositorio en `domain/repository` (sin mencionar Firebase).
-- [ ] **T-09** Repositorios `Fake*` con datos de ejemplo para que todas las pantallas funcionen sin backend.
+- [x] **T-06** Estructura de paquetes: arquitectura hexagonal con `ui/`, `domain/model`, `domain/repository`, `data/repository`, `data/mock`, `di/`, `app/`.
+- [x] **T-07** Modelos de dominio: `User`, `Group`, `Membership`, `Challenge`, `DailyChallenge`, `Proof`, `GroupValidation`, `Vote`, `Score`, `Reaction`, `Favorite`, `Notification` (doc §9).
+- [x] **T-08** Interfaces de repositorio en `domain/repository` (sin mencionar Firebase ni Android).
+- [x] **T-09** Repositorios `Fake*` con datos de ejemplo en `MockData.kt` para que todas las pantallas funcionen sin backend.
 - [ ] **T-10** `UiState` + ViewModels por pantalla (al menos para Home, Retos, Grupos, Perfil) con `StateFlow<UiState>`.
 
 ### 5.3. Recursos, manifiesto y UX

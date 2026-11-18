@@ -181,8 +181,6 @@ fun HomeScreen(
     onNotifClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
 ) {
-    var currentNavRoute by rememberSaveable { mutableStateOf("home") }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -309,36 +307,6 @@ fun HomeScreen(
                         .padding(bottom = 12.dp)
                 )
             }
-        }
-
-        // ── Barra de Navegación Inferior Flotante ───────────────────────────
-        // Insets de navegación protegidos para que los gestos de Android no la tapen
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Background.copy(alpha = 0.95f), Background),
-                        startY = 0f,
-                        endY = 160f
-                    )
-                )
-                .navigationBarsPadding() // Respeta barra de gestos / botones de navegación Android
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            KadaiBottomNav(
-                currentRoute = currentNavRoute,
-                notifCount = notifCount,
-                onRouteChange = { route ->
-                    currentNavRoute = route
-                    when (route) {
-                        "notifs"    -> onNotifClick()
-                        "profile"   -> onProfileClick()
-                        "challenge" -> onChallengeClick()
-                    }
-                }
-            )
         }
     }
 }

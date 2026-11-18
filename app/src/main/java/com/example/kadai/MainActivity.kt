@@ -4,13 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.navigation.compose.rememberNavController
-import com.example.kadai.ui.navigation.KadaiNavHost
+import com.example.kadai.app.KadaiApp
 import com.example.kadai.ui.theme.KadaiTheme
 
 /**
- * Punto de entrada de la aplicación.
- * Solo configura el tema y delega en KadaiNavHost toda la navegación.
+ * Punto de entrada limpio de la aplicación.
+ * Solo configura edge-to-edge, aplica el tema Kadai y delega la interfaz en KadaiApp.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,8 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             KadaiTheme {
-                val navController = rememberNavController()
-                KadaiNavHost(navController = navController)
+                KadaiApp()
             }
         }
     }
