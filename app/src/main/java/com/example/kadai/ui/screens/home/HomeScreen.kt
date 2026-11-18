@@ -1,4 +1,4 @@
-package com.example.kadai.ui.screens.home
+﻿package com.example.kadai.ui.screens.home
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kadai.ui.components.KadaiBottomNav
 import com.example.kadai.ui.theme.Background
 import com.example.kadai.ui.theme.Border
 import com.example.kadai.ui.theme.BorderStrong
@@ -326,14 +327,14 @@ fun HomeScreen(
                 .navigationBarsPadding() // Respeta barra de gestos / botones de navegación Android
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            ModernBottomNav(
+            KadaiBottomNav(
                 currentRoute = currentNavRoute,
                 notifCount = notifCount,
                 onRouteChange = { route ->
                     currentNavRoute = route
                     when (route) {
-                        "notifs" -> onNotifClick()
-                        "profile" -> onProfileClick()
+                        "notifs"    -> onNotifClick()
+                        "profile"   -> onProfileClick()
                         "challenge" -> onChallengeClick()
                     }
                 }
@@ -1053,165 +1054,8 @@ private fun ModernVoteChip(
     }
 }
 
-// ── Barra de Navegación Inferior Flotante (5 Ítems) ───────────────────────────
-
-/**
- * Barra inferior con los 5 ítems exactos solicitados:
- * 1. inicio
- * 2. grupos
- * 3. reto (FAB central destacado)
- * 4. notificaciones
- * 5. perfil
- */
-@Composable
-fun ModernBottomNav(
-    currentRoute: String = "home",
-    notifCount: Int = 3,
-    onRouteChange: (String) -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
-            .background(Surface.copy(alpha = 0.96f))
-            .border(1.dp, BorderStrong, RoundedCornerShape(26.dp))
-            .padding(horizontal = 6.dp, vertical = 6.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 1. INICIO
-            ModernNavItem(
-                icon = Icons.Outlined.Home,
-                label = "Inicio",
-                route = "home",
-                isSelected = currentRoute == "home",
-                onClick = { onRouteChange("home") }
-            )
-
-            // 2. GRUPOS
-            ModernNavItem(
-                icon = Icons.Outlined.Group,
-                label = "Grupos",
-                route = "groups",
-                isSelected = currentRoute == "groups",
-                onClick = { onRouteChange("groups") }
-            )
-
-            // 3. RETO (Botón central protagonista / FAB)
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(PurplePrimary, Color(0xFF9333EA))
-                        )
-                    )
-                    .border(2.dp, PurpleSoft.copy(alpha = 0.4f), RoundedCornerShape(18.dp))
-                    .clickable { onRouteChange("challenge") },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.FlashOn,
-                    contentDescription = "Reto del día",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            // 4. NOTIFICACIONES
-            ModernNavItem(
-                icon = Icons.Outlined.Notifications,
-                label = "Avisos",
-                route = "notifs",
-                isSelected = currentRoute == "notifs",
-                badgeCount = notifCount,
-                onClick = { onRouteChange("notifs") }
-            )
-
-            // 5. PERFIL
-            ModernNavItem(
-                icon = Icons.Outlined.Person,
-                label = "Perfil",
-                route = "profile",
-                isSelected = currentRoute == "profile",
-                onClick = { onRouteChange("profile") }
-            )
-        }
-    }
-}
-
-@Composable
-private fun ModernNavItem(
-    icon: ImageVector,
-    label: String,
-    route: String,
-    isSelected: Boolean,
-    badgeCount: Int = 0,
-    onClick: () -> Unit
-) {
-    val animatedBg by animateColorAsState(
-        targetValue = if (isSelected) PurplePrimary.copy(alpha = 0.16f) else Color.Transparent,
-        label = "nav_bg"
-    )
-    val iconTint = if (isSelected) PurpleSoft else TextGhost
-    val textColor = if (isSelected) PurpleSoft else TextGhost
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(animatedBg)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { onClick() }
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            BadgedBox(
-                badge = {
-                    if (badgeCount > 0) {
-                        Badge(
-                            containerColor = PurplePrimary,
-                            contentColor = Color.White
-                        ) {
-                            Text(
-                                text = if (badgeCount < 10) "$badgeCount" else "9+",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp)
-                            )
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = iconTint,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 10.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                ),
-                color = textColor
-            )
-        }
-    }
-}
 
 // ── Previsualización ──────────────────────────────────────────────────────────
-
 @Preview(
     name = "Home Screen Modernizada",
     showBackground = true,
