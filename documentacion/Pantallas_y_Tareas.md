@@ -1,7 +1,7 @@
 # Kadai · Reparto de trabajo: pantallas y tareas pendientes
 
 > Documento para **repartir el trabajo en equipo antes de conectar Firebase**.
-> Basado en `Daily_Challenges_Documentacion_Proyecto.md` (v1.2, secciones 6, 10, 13, 14 y 15) y en el estado real del código (`app/src/main/java/com/example/kadai`).
+> Basado en `proyect_description.md` (v1.2, secciones 6, 10, 13, 14 y 15) y en el estado real del código (`app/src/main/java/com/example/kadai`).
 >
 > Convención de estado: `- [ ]` pendiente · `- [x]` terminado. Añade el nombre del responsable entre paréntesis al aceptar una tarea, p. ej. `(Ana)`.
 
@@ -274,21 +274,6 @@ Extraer los que ya están dentro de pantallas y crear los que faltan. Todos en `
 - [ ] **F-06** Cloud Function de cierre: bloquear entregas/votos, validar, ordenar, calcular puntos y actualizar ranking, **idempotente**.
 - [ ] **F-07** Firebase Cloud Messaging: notificaciones de nueva prueba, superación en ranking y actividad; permisos y canales.
 - [ ] **F-08** Sustituir los repositorios `Fake*` por implementaciones reales (Auth, Firestore, Storage) y conectar los ViewModels.
-
----
-
-## 6. Sugerencia de reparto (equipo de 4)
-
-| Persona | Responsabilidad principal | Tareas |
-|---|---|---|
-| **A · Infraestructura** | Navegación, tema, componentes base, Gradle | T-01…T-05, T-11…T-15, C-01…C-07 |
-| **B · Reto y pruebas** | Flujo diario y multimedia | P-05…P-09, P-16, P-23, C-10, C-12 |
-| **C · Grupos** | Gestión de grupos, miembros y ranking | P-10…P-15, C-08 |
-| **D · Perfil y social** | Perfil, galerías, favoritos, avisos, admin | P-17…P-22, P-24, P-25, C-09 |
-| **Equipo** | Dominio y mocks compartidos | T-06…T-10 (repartir modelos por módulo) |
-| **Líder / backend** | Decisiones y Firebase | D-01…D-10, F-01…F-08, T-16…T-19 |
-
-**Orden recomendado:** primero T-01…T-04 (desbloquea a todos) → componentes C-01…C-07 → pantallas P-01…P-25 en paralelo → revisión integrada → D-01…D-10 → F-01…F-08.
 
 ---
 
