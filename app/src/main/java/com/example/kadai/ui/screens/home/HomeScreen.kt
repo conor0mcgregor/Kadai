@@ -1,6 +1,5 @@
 ﻿package com.example.kadai.ui.screens.home
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -10,7 +9,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,288 +18,283 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.FlashOn
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kadai.ui.components.KadaiBottomNav
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kadai.domain.model.MediaType
+import com.example.kadai.domain.usecase.formatCountdown
+import com.example.kadai.ui.components.ChallengeCard
+import com.example.kadai.ui.components.KadaiCard
+import com.example.kadai.ui.components.KadaiErrorState
+import com.example.kadai.ui.components.KadaiLoadingState
+import com.example.kadai.ui.components.KadaiSectionHeader
+import com.example.kadai.ui.components.ProofThumbnail
 import com.example.kadai.ui.theme.Background
 import com.example.kadai.ui.theme.Border
 import com.example.kadai.ui.theme.BorderStrong
 import com.example.kadai.ui.theme.KadaiTheme
 import com.example.kadai.ui.theme.PurplePrimary
 import com.example.kadai.ui.theme.PurpleSoft
-import com.example.kadai.ui.theme.Success
 import com.example.kadai.ui.theme.Surface
 import com.example.kadai.ui.theme.SurfaceElevated
 import com.example.kadai.ui.theme.TextDisabled
-import com.example.kadai.ui.theme.TextGhost
 import com.example.kadai.ui.theme.TextMuted
 import com.example.kadai.ui.theme.TextPrimary
 import com.example.kadai.ui.theme.TextSecondary
 import com.example.kadai.ui.theme.Warning
+import kotlinx.coroutines.delay
 
-// ── Modelos de datos para Home ────────────────────────────────────────────────
+@Composable
+fun HomeRoute(
+    onGroupClick: (groupId: String) -> Unit,
+    onChallengeClick: (dailyChallengeId: String) -> Unit,
+    onGroupsClick: () -> Unit,
+    onCreateGroupClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    viewModel: HomeViewModel = viewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    HomeScreen(
+        state = state,
+        onGroupClick = onGroupClick,
+        onChallengeClick = onChallengeClick,
+        onGroupsClick = onGroupsClick,
+        onCreateGroupClick = onCreateGroupClick,
+        onProfileClick = onProfileClick,
+        onRetry = viewModel::retry
+    )
+}
 
-data class GroupItem(
-    val id: String,
-    val name: String,
-    val emoji: String,
-    val memberCount: Int,
-    val gradientStart: Color,
-    val gradientEnd: Color,
-    val isActive: Boolean = false
-)
-
-data class ActivityItem(
-    val id: String,
-    val userName: String,
-    val userInitial: String,
-    val avatarColor: Color,
-    val action: String,
-    val groupName: String,
-    val timestamp: String,
-    val pointsGained: Int? = null,
-    val reactions: String? = null,
-    val hasProof: Boolean = false,
-    val proofEmoji: String = "",
-    val upvotes: Int = 0,
-    val downvotes: Int = 0,
-    val userVotedUp: Boolean = false
-)
-
-private val sampleGroups = listOf(
-    GroupItem("1", "Pandilla",     "🏆", 5, Color(0xFF6D28D9), Color(0xFF8B5CF6), isActive = true),
-    GroupItem("2", "Uni 2024",     "🎯", 3, Color(0xFF047857), Color(0xFF10B981)),
-    GroupItem("3", "Curro Squad",  "⚡", 8, Color(0xFFC2410C), Color(0xFFF97316)),
-    GroupItem("4", "Músicos",      "🎵", 4, Color(0xFF1E3A8A), Color(0xFF3B82F6)),
-)
-
-private val sampleActivity = listOf(
-    ActivityItem(
-        id = "1",
-        userName = "María R.",
-        userInitial = "M",
-        avatarColor = Color(0xFF7C3AED),
-        action = "Subió su prueba diaria",
-        groupName = "Pandilla",
-        timestamp = "hace 14 min",
-        hasProof = true,
-        proofEmoji = "🌍",
-        upvotes = 8,
-        downvotes = 1,
-        userVotedUp = true
-    ),
-    ActivityItem(
-        id = "2",
-        userName = "Carlos M.",
-        userInitial = "C",
-        avatarColor = Color(0xFF059669),
-        action = "Superó el reto y escaló posición",
-        groupName = "Uni 2024",
-        timestamp = "hace 1 h",
-        pointsGained = 220
-    ),
-    ActivityItem(
-        id = "3",
-        userName = "Sara L.",
-        userInitial = "S",
-        avatarColor = Color(0xFFD97706),
-        action = "Reaccionó a tu prueba",
-        groupName = "Pandilla",
-        timestamp = "hace 2 h",
-        reactions = "🔥  👏  🚀"
-    ),
-)
-
-// ── Pantalla Home Principal ───────────────────────────────────────────────────
-
-/**
- * Pantalla principal (Home) de KADAI.
- *
- * Mejoras aplicadas:
- * - Insets superiores seguros para no solapar los iconos de la barra de estado del móvil (`statusBarsPadding()`).
- * - Barra de navegación con los 5 ítems exactos: Inicio, Grupos, Reto (FAB), Notificaciones, Perfil.
- * - Insets inferiores seguros para gestos del sistema (`navigationBarsPadding()`).
- * - Diseño visual modernizado, con mayor claridad, contrastes depurados y jerarquía limpia.
- */
 @Composable
 fun HomeScreen(
-    userName: String = "Alex García",
-    userInitial: String = "A",
-    userPoints: Int = 1840,
-    userRankPosition: Int = 2,
-    challengesCount: Int = 12,
-    streakDays: Int = 7,
-    groups: List<GroupItem> = sampleGroups,
-    activity: List<ActivityItem> = sampleActivity,
-    notifCount: Int = 3,
-    onGroupClick: (GroupItem) -> Unit = {},
-    onChallengeClick: () -> Unit = {},
-    onAddGroupClick: () -> Unit = {},
-    onNotifClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
+    state: HomeUiState,
+    onGroupClick: (groupId: String) -> Unit,
+    onChallengeClick: (dailyChallengeId: String) -> Unit,
+    onGroupsClick: () -> Unit,
+    onCreateGroupClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Background)
     ) {
-        // Resplandor sutil de fondo superior para dar profundidad visual
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(280.dp)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            PurplePrimary.copy(alpha = 0.12f),
-                            Color.Transparent
-                        ),
-                        center = Offset(300f, -50f),
-                        radius = 500f
-                    )
-                )
-        )
+        BackgroundGlow()
 
-        // Contenido scrollable con padding superior para la barra de estado
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding(), // Protege los iconos del móvil (hora, batería, notch, etc.)
-            contentPadding = PaddingValues(
-                top = 10.dp,
-                bottom = 120.dp // Espacio para la barra de navegación flotante inferior
+        when {
+            state.isLoading -> KadaiLoadingState(
+                modifier = Modifier.statusBarsPadding(),
+                message = "Preparando tu reto…"
             )
-        ) {
-            // ── Cabecera Principal ──────────────────────────────────────────
-            item {
-                ModernHomeHeader(
-                    userName = userName,
-                    userInitial = userInitial,
-                    streakDays = streakDays,
-                    onAvatarClick = onProfileClick
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            state.error != null -> KadaiErrorState(
+                message = state.error,
+                onRetry = onRetry,
+                modifier = Modifier.statusBarsPadding()
+            )
+            else -> HomeContent(
+                state = state,
+                onGroupClick = onGroupClick,
+                onChallengeClick = onChallengeClick,
+                onGroupsClick = onGroupsClick,
+                onCreateGroupClick = onCreateGroupClick,
+                onProfileClick = onProfileClick,
+                now = System.currentTimeMillis()
+            )
+        }
+    }
+}
 
-            // ── Resumen de Estadísticas del Usuario ─────────────────────────
+@Composable
+private fun HomeContent(
+    state: HomeUiState,
+    onGroupClick: (String) -> Unit,
+    onChallengeClick: (String) -> Unit,
+    onGroupsClick: () -> Unit,
+    onCreateGroupClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    now: Long
+) {
+    val ticker by produceState(initialValue = now) {
+        while (true) {
+            value = System.currentTimeMillis()
+            delay(1_000L)
+        }
+    }
+    val challenge = state.challenge
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding(),
+        contentPadding = PaddingValues(top = 10.dp, bottom = 120.dp)
+    ) {
+        item {
+            HomeHeader(
+                userName = state.userName,
+                userInitial = state.userInitial,
+                streakDays = state.streakDays,
+                onAvatarClick = onProfileClick
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            StatsStrip(
+                points = state.userPoints,
+                rankPosition = state.userRankPosition,
+                challengesCount = state.challengesCount,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(modifier = Modifier.height(26.dp))
+        }
+
+        item {
+            KadaiSectionHeader(
+                title = "Mis grupos",
+                badge = "${state.groups.size}",
+                actionLabel = "Ver todos",
+                onActionClick = onGroupsClick,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        if (state.groups.isEmpty()) {
             item {
-                ModernStatsStrip(
-                    points = userPoints,
-                    rankPosition = userRankPosition,
-                    challengesCount = challengesCount,
-                    streakDays = streakDays,
+                EmptyGroupsCard(
+                    onCreateGroupClick = onCreateGroupClick,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(modifier = Modifier.height(26.dp))
             }
-
-            // ── Carrusel de Grupos ──────────────────────────────────────────
+        } else {
             item {
-                ModernSectionHeader(
-                    title = "Mis grupos",
-                    badgeText = "${groups.size}",
-                    actionLabel = "Ver todos",
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                ModernGroupsRow(
-                    groups = groups,
+                GroupsRow(
+                    groups = state.groups,
                     onGroupClick = onGroupClick,
-                    onAddGroupClick = onAddGroupClick
+                    onCreateGroupClick = onCreateGroupClick
                 )
                 Spacer(modifier = Modifier.height(26.dp))
             }
+        }
 
-            // ── Tarjeta Protagonista del Reto Diario ────────────────────────
-            item {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Reto del día",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = (-0.2).sp
-                            ),
-                            color = TextPrimary
-                        )
-                        PulsingLiveBadge()
-                    }
+                    Text(
+                        text = "Reto del día",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.2).sp
+                        ),
+                        color = TextPrimary
+                    )
+                    if (challenge?.isOpen == true) PulsingLiveBadge()
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                ModernDailyChallengeCard(
-                    title = "Grita en medio de la calle",
-                    description = "Sube un video gritando en medio de la calle, cuando antes lo hagas, mas puntos te llevas",
-                    timeRemaining = "08:24:15",
-                    participantsText = "4 de 5 han participado",
-                    onChallengeClick = onChallengeClick,
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (challenge == null) {
+                KadaiCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Hoy no hay reto activo",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "El siguiente reto se publicará a lo largo del día.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextDisabled
+                    )
+                }
+            } else {
+                val isOpen = challenge.isOpen && challenge.closesAt > ticker
+                ChallengeCard(
+                    title = challenge.title,
+                    description = challenge.description,
+                    timeRemaining = if (isOpen) {
+                        formatCountdown(challenge.closesAt - ticker)
+                    } else {
+                        "Cerrado"
+                    },
+                    participantsText = challenge.participantsText,
+                    alreadySubmitted = challenge.alreadySubmitted,
+                    isOpen = isOpen,
+                    category = challenge.category,
+                    onActionClick = { onChallengeClick(challenge.dailyChallengeId) },
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
-                Spacer(modifier = Modifier.height(26.dp))
             }
+            Spacer(modifier = Modifier.height(26.dp))
+        }
 
-            // ── Actividad Reciente de Amigos ────────────────────────────────
+        item {
+            KadaiSectionHeader(
+                title = "Actividad reciente",
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        if (state.activity.isEmpty()) {
             item {
-                ModernSectionHeader(
-                    title = "Actividad reciente",
-                    actionLabel = "Filtrar",
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(14.dp))
+                KadaiCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Todavía no hay actividad",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Cuando alguien de tus grupos suba una prueba aparecerá aquí.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextDisabled
+                    )
+                }
             }
-
-            items(activity) { item ->
-                ModernActivityCard(
-                    item = item,
+        } else {
+            items(state.activity, key = { it.id }) { activity ->
+                ActivityCard(
+                    item = activity,
                     modifier = Modifier
                         .padding(horizontal = 20.dp)
                         .padding(bottom = 12.dp)
@@ -311,10 +304,24 @@ fun HomeScreen(
     }
 }
 
-// ── Componentes de la Cabecera ────────────────────────────────────────────────
+@Composable
+private fun BackgroundGlow() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)
+            .background(
+                brush = Brush.radialGradient(
+                    colors = listOf(PurplePrimary.copy(alpha = 0.12f), Color.Transparent),
+                    center = Offset(300f, -50f),
+                    radius = 500f
+                )
+            )
+    )
+}
 
 @Composable
-private fun ModernHomeHeader(
+private fun HomeHeader(
     userName: String,
     userInitial: String,
     streakDays: Int,
@@ -331,15 +338,12 @@ private fun ModernHomeHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Avatar con aro gradiente y presencia activa
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(PurplePrimary, Color(0xFF9333EA))
-                        )
+                        Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
                     )
                     .border(2.dp, PurpleSoft.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
                     .clickable { onAvatarClick() },
@@ -353,7 +357,6 @@ private fun ModernHomeHeader(
                     ),
                     color = Color.White
                 )
-
             }
 
             Column {
@@ -376,7 +379,6 @@ private fun ModernHomeHeader(
             }
         }
 
-        // Pill con racha de días activa
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
@@ -396,28 +398,18 @@ private fun ModernHomeHeader(
     }
 }
 
-// ── Componente de Métricas / Stats Strip ──────────────────────────────────────
-
 @Composable
-private fun ModernStatsStrip(
+private fun StatsStrip(
     points: Int,
-    rankPosition: Int,
+    rankPosition: Int?,
     challengesCount: Int,
-    streakDays: Int,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Surface,
-                        Color(0xFF1B1824)
-                    )
-                )
-            )
+            .background(Brush.linearGradient(colors = listOf(Surface, Color(0xFF1B1824))))
             .border(1.dp, BorderStrong, RoundedCornerShape(20.dp))
             .padding(vertical = 16.dp, horizontal = 12.dp)
     ) {
@@ -426,28 +418,20 @@ private fun ModernStatsStrip(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Puntos
-            ModernStatCol(
-                value = String.format("%,d", points).replace(',', '.'),
+            StatColumn(
+                value = points.toString(),
                 label = "PUNTOS",
                 valueColor = PurpleSoft
             )
-
-            ModernStatDivider()
-
-            // Posición en ranking
-            ModernStatCol(
-                value = "#$rankPosition",
+            StatDivider()
+            StatColumn(
+                value = rankPosition?.let { "#$it" } ?: "—",
                 label = "RANKING",
-                valueColor = Color.White,
-                iconPrefix = "👑 "
+                valueColor = Color.White
             )
-
-            ModernStatDivider()
-
-            // Retos completados
-            ModernStatCol(
-                value = "$challengesCount",
+            StatDivider()
+            StatColumn(
+                value = challengesCount.toString(),
                 label = "RETOS",
                 valueColor = Color.White
             )
@@ -456,17 +440,11 @@ private fun ModernStatsStrip(
 }
 
 @Composable
-private fun ModernStatCol(
-    value: String,
-    label: String,
-    valueColor: Color,
-    iconPrefix: String = ""
-) {
+private fun StatColumn(value: String, label: String, valueColor: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-
         Text(
             text = value,
             style = MaterialTheme.typography.headlineSmall.copy(
@@ -488,109 +466,47 @@ private fun ModernStatCol(
 }
 
 @Composable
-private fun ModernStatDivider() {
+private fun StatDivider() {
     Box(
         modifier = Modifier
-            .width(1.dp)
-            .height(32.dp)
+            .size(width = 1.dp, height = 32.dp)
             .background(Border)
     )
 }
 
-// ── Cabecera de Secciones ─────────────────────────────────────────────────────
-
 @Composable
-private fun ModernSectionHeader(
-    title: String,
-    actionLabel: String? = null,
-    badgeText: String? = null,
-    modifier: Modifier = Modifier,
-    onActionClick: () -> Unit = {}
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.2).sp
-                ),
-                color = TextPrimary
-            )
-            if (badgeText != null) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceElevated)
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = badgeText,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                        color = TextMuted
-                    )
-                }
-            }
-        }
-
-        if (actionLabel != null) {
-            Text(
-                text = actionLabel,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = PurpleSoft
-                ),
-                modifier = Modifier.clickable { onActionClick() }
-            )
-        }
-    }
-}
-
-// ── Carrusel de Grupos ────────────────────────────────────────────────────────
-
-@Composable
-private fun ModernGroupsRow(
-    groups: List<GroupItem>,
-    onGroupClick: (GroupItem) -> Unit,
-    onAddGroupClick: () -> Unit
+private fun GroupsRow(
+    groups: List<HomeGroupItem>,
+    onGroupClick: (String) -> Unit,
+    onCreateGroupClick: () -> Unit
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(groups) { group ->
-            ModernGroupPill(group = group, onClick = { onGroupClick(group) })
+        items(groups, key = { it.id }) { group ->
+            GroupPill(group = group, onClick = { onGroupClick(group.id) })
+        }
+        item {
+            AddGroupPill(onClick = onCreateGroupClick)
         }
     }
 }
 
 @Composable
-private fun ModernGroupPill(
-    group: GroupItem,
-    onClick: () -> Unit
-) {
+private fun GroupPill(group: HomeGroupItem, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.clickable { onClick() }
     ) {
         Box(modifier = Modifier.size(60.dp)) {
-            // Contenedor del avatar con gradiente y borde activo
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(20.dp))
                     .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(group.gradientStart, group.gradientEnd)
-                        )
+                        Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF8B5CF6)))
                     )
                     .border(
                         width = if (group.isActive) 2.dp else 1.dp,
@@ -602,7 +518,6 @@ private fun ModernGroupPill(
                 Text(text = group.emoji, fontSize = 24.sp)
             }
 
-            // Badge de cantidad de integrantes
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -634,7 +549,74 @@ private fun ModernGroupPill(
     }
 }
 
-// ── Indicador En Vivo / Pulsante ──────────────────────────────────────────────
+@Composable
+private fun AddGroupPill(onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(SurfaceElevated)
+                .border(1.dp, Border, RoundedCornerShape(20.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = "Crear grupo",
+                tint = PurpleSoft,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = "Crear",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextDisabled
+        )
+    }
+}
+
+@Composable
+private fun EmptyGroupsCard(onCreateGroupClick: () -> Unit, modifier: Modifier = Modifier) {
+    KadaiCard(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Group,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(26.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Aún no perteneces a ningún grupo",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Crea uno o únete con un código para empezar a competir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextDisabled
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Crear mi primer grupo",
+            style = MaterialTheme.typography.labelLarge,
+            color = PurpleSoft,
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { onCreateGroupClick() }
+                .padding(vertical = 6.dp)
+        )
+    }
+}
 
 @Composable
 private fun PulsingLiveBadge() {
@@ -676,198 +658,8 @@ private fun PulsingLiveBadge() {
     }
 }
 
-// ── Tarjeta Protagonista del Reto Diario ───────────────────────────────────────
-
 @Composable
-fun ModernDailyChallengeCard(
-    title: String,
-    description: String,
-    timeRemaining: String,
-    participantsText: String,
-    onChallengeClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    alreadySubmitted: Boolean = false
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Surface)
-            .border(1.dp, BorderStrong, RoundedCornerShape(24.dp))
-    ) {
-        // Cabecera con degradado distintivo KADAI
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF581C87), // Púrpura profundo
-                            Color(0xFF7C3AED), // Morado acento
-                            Color(0xFF9333EA)  // Violeta vibrante
-                        )
-                    )
-                )
-                .padding(20.dp)
-        ) {
-            // Elemento geométrico sutil de fondo
-            Box(
-                modifier = Modifier
-                    .size(110.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.06f))
-                    .align(Alignment.TopEnd)
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                // Fila superior: Tag de categoría + Contador regresivo
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.18f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "✦  RETO GLOBAL",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.8.sp
-                            ),
-                            color = Color.White
-                        )
-                    }
-
-                    // Contador de tiempo
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.25f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Timer,
-                            contentDescription = null,
-                            tint = Color(0xFFFDE68A),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = timeRemaining,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 0.5.sp
-                            ),
-                            color = Color(0xFFFDE68A)
-                        )
-                    }
-                }
-
-                // Título del reto
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 26.sp,
-                        letterSpacing = (-0.3).sp
-                    ),
-                    color = Color.White
-                )
-            }
-        }
-
-        // Cuerpo de la tarjeta
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    lineHeight = 22.sp
-                ),
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Botón de acción principal
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        brush = if (!alreadySubmitted)
-                            Brush.linearGradient(
-                                colors = listOf(PurplePrimary, Color(0xFF9333EA))
-                            )
-                        else
-                            Brush.linearGradient(
-                                colors = listOf(Success, Color(0xFF16A34A))
-                            )
-                    )
-                    .clickable { onChallengeClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = if (!alreadySubmitted) "＋" else "✓",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White
-                    )
-                    Text(
-                        text = if (!alreadySubmitted) "Subir mi prueba" else "Prueba enviada · Ver",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.3.sp
-                        ),
-                        color = Color.White
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ModernMetaChip(text: String, icon: String) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceElevated)
-            .border(1.dp, Border, RoundedCornerShape(14.dp))
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(text = icon, fontSize = 11.sp)
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-            color = TextMuted
-        )
-    }
-}
-
-// ── Tarjeta de Actividad Social ───────────────────────────────────────────────
-
-@Composable
-fun ModernActivityCard(
-    item: ActivityItem,
-    modifier: Modifier = Modifier
-) {
+private fun ActivityCard(item: HomeActivityItem, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -878,41 +670,8 @@ fun ModernActivityCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Thumbnail multimedia o avatar de usuario
-        if (item.hasProof) {
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFF1E3A8A), Color(0xFF0F766E))
-                        )
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = item.proofEmoji, fontSize = 22.sp)
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(item.avatarColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = item.userInitial,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.ExtraBold
-                    ),
-                    color = Color.White
-                )
-            }
-        }
+        ProofThumbnail(storagePath = item.id, mediaType = item.mediaType)
 
-        // Información de actividad
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -930,102 +689,23 @@ fun ModernActivityCard(
                 Text(
                     text = item.timestamp,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextGhost
+                    color = TextDisabled
                 )
             }
 
             Text(
                 text = "${item.action}  •  ${item.groupName}",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextDisabled,
+                color = TextSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-
-            // Votaciones inline si tiene prueba
-            if (item.hasProof) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ModernVoteChip(
-                        count = item.upvotes,
-                        isPositive = true,
-                        isSelected = item.userVotedUp
-                    )
-                    ModernVoteChip(
-                        count = item.downvotes,
-                        isPositive = false,
-                        isSelected = false
-                    )
-                }
-            }
-
-            // Puntos ganados
-            if (item.pointsGained != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Success.copy(alpha = 0.12f))
-                        .border(1.dp, Success.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text("⭐", fontSize = 10.sp)
-                    Text(
-                        text = "+${item.pointsGained} pts",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = Success
-                    )
-                }
-            }
-
-            // Reacciones
-            if (item.reactions != null) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(text = item.reactions, fontSize = 15.sp)
-            }
         }
     }
 }
 
-@Composable
-private fun ModernVoteChip(
-    count: Int,
-    isPositive: Boolean,
-    isSelected: Boolean
-) {
-    val bgColor = if (isSelected) PurplePrimary.copy(alpha = 0.18f) else SurfaceElevated
-    val borderColor = if (isSelected) PurpleSoft else Border
-    val textColor = if (isSelected) PurpleSoft else TextMuted
-
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(bgColor)
-            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-            .padding(horizontal = 9.dp, vertical = 4.dp)
-            .clickable { /* Toggle vote */ },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = if (isPositive) "▲" else "▼",
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-            color = textColor
-        )
-        Text(
-            text = "$count",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = textColor
-        )
-    }
-}
-
-
-// ── Previsualización ──────────────────────────────────────────────────────────
 @Preview(
-    name = "Home Screen Modernizada",
+    name = "Home conectado",
     showBackground = true,
     backgroundColor = 0xFF0F0F12,
     device = "spec:width=390dp,height=844dp,dpi=460"
@@ -1033,6 +713,57 @@ private fun ModernVoteChip(
 @Composable
 private fun HomeScreenPreview() {
     KadaiTheme {
-        HomeScreen()
+        HomeScreen(
+            state = HomeUiState(
+                isLoading = false,
+                userName = "Alex García",
+                userInitial = "A",
+                userPoints = 1840,
+                userRankPosition = 2,
+                challengesCount = 12,
+                streakDays = 7,
+                groups = listOf(
+                    HomeGroupItem("group_pandilla", "Pandilla", "🏆", 5, 1840, isActive = true),
+                    HomeGroupItem("group_uni", "Uni 2024", "🎯", 3, 145),
+                    HomeGroupItem("group_curro", "Curro Squad", "⚡", 2, 0)
+                ),
+                challenge = HomeChallengeItem(
+                    dailyChallengeId = "daily_001",
+                    title = "Grita en medio de la calle",
+                    description = "Sube un vídeo gritando en medio de la calle. Cuanto antes lo hagas, más puntos te llevas.",
+                    category = "Atrevido",
+                    closesAt = System.currentTimeMillis() + 8 * 3_600_000L,
+                    participantsText = "3 de 5 han participado",
+                    alreadySubmitted = false,
+                    isOpen = true
+                ),
+                activity = listOf(
+                    HomeActivityItem(
+                        id = "proof_001",
+                        userName = "María R.",
+                        userInitial = "M",
+                        action = "Subió su prueba diaria",
+                        groupName = "Pandilla",
+                        timestamp = "hace 14 min",
+                        mediaType = MediaType.VIDEO
+                    ),
+                    HomeActivityItem(
+                        id = "proof_003",
+                        userName = "Sara L.",
+                        userInitial = "S",
+                        action = "Subió su prueba diaria",
+                        groupName = "Pandilla",
+                        timestamp = "hace 2 h",
+                        mediaType = MediaType.PHOTO
+                    )
+                )
+            ),
+            onGroupClick = {},
+            onChallengeClick = {},
+            onGroupsClick = {},
+            onCreateGroupClick = {},
+            onProfileClick = {},
+            onRetry = {}
+        )
     }
 }

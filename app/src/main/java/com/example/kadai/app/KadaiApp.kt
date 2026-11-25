@@ -32,8 +32,9 @@ fun KadaiApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // La barra inferior se muestra únicamente en destinos principales (Home)
-    val shouldShowBottomBar = currentRoute == Routes.HOME
+    // La barra inferior solo aparece en los destinos principales implementados.
+    val mainRoutes = setOf(Routes.HOME, Routes.GROUPS)
+    val shouldShowBottomBar = currentRoute in mainRoutes
 
     Scaffold(
         containerColor = Background,
@@ -53,20 +54,23 @@ fun KadaiApp(
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     KadaiBottomNav(
-                        currentRoute = "home",
-                        notifCount = 3,
+                        currentRoute = currentRoute ?: Routes.HOME,
+                        notifCount = 0,
+                        availableRoutes = setOf("home", "groups", "challenge"),
                         onRouteChange = { route ->
                             when (route) {
-                                "home" -> {
-                                    if (currentRoute != Routes.HOME) {
-                                        navController.navigate(Routes.HOME) {
-                                            popUpTo(Routes.HOME) { inclusive = true }
-                                        }
-                                    }
+                                "home" -> navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                // Las futuras pantallas (groups, challenge, notifs, profile)
-                                // se conectarán aquí cuando existan sus destinos en Routes
-                                else -> {}
+                                "groups" -> navController.navigate(Routes.GROUPS) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                                "challenge" -> navController.navigate(Routes.CHALLENGE_TODAY)
+                                else -> Unit
                             }
                         }
                     )
