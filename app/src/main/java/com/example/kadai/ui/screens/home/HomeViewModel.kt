@@ -6,9 +6,10 @@ import com.example.kadai.domain.model.DailyChallenge
 import com.example.kadai.domain.model.DailyChallengeStatus
 import com.example.kadai.domain.model.Group
 import com.example.kadai.domain.model.Membership
+import com.example.kadai.domain.model.MembershipStatus
 import com.example.kadai.domain.model.Notification
 import com.example.kadai.domain.model.Proof
-import com.example.kadai.domain.model.User
+import com.example.kadai.domain.usecase.buildGroupRanking
 import com.example.kadai.domain.usecase.formatRelativeTime
 import com.example.kadai.ui.base.KadaiViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,13 +56,12 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
         loadJob = viewModelScope.launch {
             try {
                 combine(
-                    userRepository.observeUser(currentUserId),
                     groupRepository.observeGroupsForUser(currentUserId),
                     challengeRepository.observeActiveChallenge(),
                     proofsFlow,
                     notificationRepository.observeNotifications(currentUserId)
-                ) { user, groups, daily, proofs, notifications ->
-                    Snapshot(user, groups, daily, proofs, notifications)
+                ) { groups, daily, proofs, notifications ->
+                    Snapshot(groups, daily, proofs, notifications)
                 }.collect { snapshot ->
                     runCatching { buildState(snapshot) }
                         .onSuccess { _state.value = it }
@@ -86,7 +86,6 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
     }
 
     private suspend fun buildState(snapshot: Snapshot): HomeUiState {
-        val user = snapshot.user ?: error("No se encontró el usuario de la sesión")
         val groups = snapshot.groups
         val memberships = groups.associate { group ->
             group.groupId to groupRepository.getMembershipsForGroup(group.groupId)
@@ -101,26 +100,19 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
         val participants = primaryGroup?.let { stat ->
             snapshot.proofs.count { it.userId in stat.memberIds }
         } ?: 0
-        val completedChallenges = countCompletedChallenges(groupStats)
         val activity = buildActivity(snapshot, memberships, groups, now)
 
         return HomeUiState(
             isLoading = false,
             error = null,
-            userName = user.username,
-            userInitial = user.initial,
-            userPoints = groupStats.sumOf { it.userPoints },
-            userRankPosition = groupStats.mapNotNull { it.rank }.minOrNull(),
-            challengesCount = completedChallenges,
-            streakDays = user.streak,
             groups = groupStats.map { stat ->
                 HomeGroupItem(
                     id = stat.group.groupId,
                     name = stat.group.name,
-                    emoji = stat.group.emoji,
+                    photoUrl = stat.group.photoUrl,
+                    description = stat.group.description,
                     memberCount = stat.memberCount,
-                    userPoints = stat.userPoints,
-                    isActive = stat.group.groupId == primaryGroup?.group?.groupId
+                    topRanking = stat.topRanking
                 )
             },
             challenge = activeChallenge?.let { daily ->
@@ -146,31 +138,32 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
 
     private suspend fun buildGroupStat(group: Group, memberships: List<Membership>): GroupStat {
         val memberIds = memberships.map { it.userId }
+        val activeMemberCount = memberships.count { it.status == MembershipStatus.ACTIVE }
         val pointsByUser = memberIds.associateWith { userId ->
             rankingRepository.getTotalPointsForUser(userId, group.groupId)
         }
-        val ordered = pointsByUser.entries.sortedByDescending { it.value }
-        val rank = ordered.indexOfFirst { it.key == currentUserId }
-            .takeIf { it >= 0 }
-            ?.plus(1)
+        val namesByUser = memberIds.associateWith { userId ->
+            userRepository.getUser(userId)?.username ?: "Miembro"
+        }
+        val orderedIds = memberIds.sortedBy { namesByUser[it].orEmpty().lowercase() }
+        val topRanking = buildGroupRanking(orderedIds, pointsByUser)
+            .take(3)
+            .map { position ->
+                val name = namesByUser[position.userId] ?: "Miembro"
+                HomeRankingItem(
+                    userId = position.userId,
+                    displayName = name,
+                    initial = name.firstOrNull()?.uppercase() ?: "?",
+                    points = position.points
+                )
+            }
+
         return GroupStat(
             group = group,
             memberIds = memberIds,
-            memberCount = memberIds.size,
-            userPoints = pointsByUser[currentUserId] ?: 0,
-            rank = rank
+            memberCount = activeMemberCount,
+            topRanking = topRanking
         )
-    }
-
-    private suspend fun countCompletedChallenges(groupStats: List<GroupStat>): Int {
-        if (groupStats.isEmpty()) return 0
-        return challengeRepository.getChallengeHistory().count { daily ->
-            groupStats.any { stat ->
-                rankingRepository
-                    .getScoresForChallenge(daily.dailyChallengeId, stat.group.groupId)
-                    .any { it.userId == currentUserId && it.completionPoints > 0 }
-            }
-        }
     }
 
     private suspend fun buildActivity(
@@ -211,7 +204,6 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
     }
 
     private data class Snapshot(
-        val user: User?,
         val groups: List<Group>,
         val dailyChallenge: DailyChallenge?,
         val proofs: List<Proof>,
@@ -222,10 +214,6 @@ class HomeViewModel(application: Application) : KadaiViewModel(application) {
         val group: Group,
         val memberIds: List<String>,
         val memberCount: Int,
-        val userPoints: Int,
-        val rank: Int?
+        val topRanking: List<HomeRankingItem>
     )
 }
-
-private val User.initial: String
-    get() = username.firstOrNull()?.uppercase() ?: "?"

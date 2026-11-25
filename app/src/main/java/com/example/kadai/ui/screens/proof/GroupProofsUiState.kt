@@ -32,7 +32,7 @@ data class GroupProofsUiState(
     val error: String? = null,
     val groupId: String = "",
     val groupName: String = "",
-    val groupEmoji: String = "🏆",
+    val groupPhotoUrl: String? = null,
     val challengeTitle: String = "",
     val isOpen: Boolean = false,
     val filter: ProofFilter = ProofFilter.ALL,

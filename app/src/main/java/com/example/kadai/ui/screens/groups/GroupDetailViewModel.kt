@@ -3,11 +3,14 @@ package com.example.kadai.ui.screens.groups
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.example.kadai.domain.model.MemberRole
+import com.example.kadai.domain.model.Membership
 import com.example.kadai.domain.model.MembershipStatus
+import com.example.kadai.domain.usecase.buildGroupRanking
 import com.example.kadai.domain.usecase.uniqueInviteCode
 import com.example.kadai.ui.base.KadaiViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,6 +21,7 @@ class GroupDetailViewModel(
 
     private val groupRepository = container.groupRepository
     private val userRepository = container.userRepository
+    private val rankingRepository = container.rankingRepository
 
     private val _state = MutableStateFlow(GroupDetailUiState(groupId = groupId))
     val state = _state.asStateFlow()
@@ -74,7 +78,12 @@ class GroupDetailViewModel(
         }
     }
 
-    fun updateGroup(name: String, description: String, emoji: String, onDone: () -> Unit) {
+    fun updateGroup(
+        name: String,
+        description: String,
+        photoUrl: String?,
+        onDone: () -> Unit
+    ) {
         val trimmedName = name.trim()
         if (trimmedName.length < 3) {
             _state.update { it.copy(actionError = "El nombre debe tener al menos 3 caracteres.") }
@@ -92,7 +101,7 @@ class GroupDetailViewModel(
                     group.copy(
                         name = trimmedName,
                         description = description.trim(),
-                        emoji = emoji,
+                        photoUrl = photoUrl,
                         inviteCode = group.inviteCode.ifBlank {
                             uniqueInviteCode(trimmedName, existingCodes)
                         }
@@ -137,28 +146,76 @@ class GroupDetailViewModel(
             ?: error("El grupo ya no está disponible.")
         val memberships = groupRepository.getAllMembershipsForGroup(groupId)
         val myMembership = memberships.firstOrNull { it.userId == currentUserId }
-        val members = memberships.map { membership ->
-            val user = userRepository.getUser(membership.userId)
-            GroupMemberItem(
-                userId = membership.userId,
-                displayName = user?.username ?: "Miembro",
-                initial = user?.username?.firstOrNull()?.uppercase() ?: "?",
-                roleLabel = if (membership.role == MemberRole.ADMIN) "Admin" else "Miembro",
-                isCurrentUser = membership.userId == currentUserId,
-                isInactive = membership.status == MembershipStatus.INACTIVE
-            )
-        }
+        val scores = rankingRepository.observeRankingForGroup(groupId).first()
+        val pointsByUser = scores.associate { it.userId to it.totalPoints }
+
+        val members = memberships.map { membership -> membership.toMemberItem() }
+        val ranking = buildRanking(memberships, pointsByUser)
+
         return GroupDetailUiState(
             isLoading = false,
             error = null,
             groupId = group.groupId,
             name = group.name,
             description = group.description,
-            emoji = group.emoji,
+            photoUrl = group.photoUrl,
             inviteCode = group.inviteCode,
             isAdmin = myMembership?.role == MemberRole.ADMIN,
             members = members,
+            ranking = ranking,
             memberCount = members.count { !it.isInactive }
         )
     }
+
+    private suspend fun buildRanking(
+        memberships: List<Membership>,
+        pointsByUser: Map<String, Int>
+    ): List<RankingEntry> {
+        val info = memberships.map { membership ->
+            val member = membership.toMemberItem()
+            RankingInfo(
+                userId = member.userId,
+                displayName = member.displayName,
+                initial = member.initial,
+                isInactive = member.isInactive,
+                isAdmin = membership.role == MemberRole.ADMIN
+            )
+        }
+        val infoByUserId = info.associateBy { it.userId }
+        val orderedIds = info.sortedBy { it.displayName.lowercase() }.map { it.userId }
+
+        return buildGroupRanking(orderedIds, pointsByUser).map { position ->
+            val member = infoByUserId.getValue(position.userId)
+            RankingEntry(
+                position = position.position,
+                userId = position.userId,
+                displayName = member.displayName,
+                initial = member.initial,
+                points = position.points,
+                isCurrentUser = position.userId == currentUserId,
+                isInactive = member.isInactive,
+                isAdmin = member.isAdmin
+            )
+        }
+    }
+
+    private suspend fun Membership.toMemberItem(): GroupMemberItem {
+        val user = userRepository.getUser(userId)
+        return GroupMemberItem(
+            userId = userId,
+            displayName = user?.username ?: "Miembro",
+            initial = user?.username?.firstOrNull()?.uppercase() ?: "?",
+            roleLabel = if (role == MemberRole.ADMIN) "Admin" else "Miembro",
+            isCurrentUser = userId == currentUserId,
+            isInactive = status == MembershipStatus.INACTIVE
+        )
+    }
+
+    private data class RankingInfo(
+        val userId: String,
+        val displayName: String,
+        val initial: String,
+        val isInactive: Boolean,
+        val isAdmin: Boolean
+    )
 }

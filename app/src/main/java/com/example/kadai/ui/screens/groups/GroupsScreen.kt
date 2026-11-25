@@ -116,7 +116,7 @@ fun GroupsScreen(
                     items(state.groups, key = { it.groupId }) { group ->
                         GroupCard(
                             name = group.name,
-                            emoji = group.emoji,
+                            photoUrl = group.photoUrl,
                             description = group.description,
                             memberCount = group.memberCount,
                             userPoints = group.userPoints,
@@ -154,9 +154,9 @@ private fun GroupsPreview() {
             state = GroupsUiState(
                 isLoading = false,
                 groups = listOf(
-                    GroupListEntry("group_pandilla", "Pandilla", "El grupo de siempre", "🏆", 5, 440),
-                    GroupListEntry("group_uni", "Uni 2024", "Compañeros de universidad", "🎯", 3, 145),
-                    GroupListEntry("group_curro", "Curro Squad", "Los del trabajo", "⚡", 2, 0)
+                    GroupListEntry("group_pandilla", "Pandilla", "El grupo de siempre", "res://group_cover_pandilla", 5, 440),
+                    GroupListEntry("group_uni", "Uni 2024", "Compañeros de universidad", "res://group_cover_uni", 3, 145),
+                    GroupListEntry("group_curro", "Curro Squad", "Los del trabajo", "res://group_cover_curro", 2, 0)
                 )
             ),
             onGroupClick = {},

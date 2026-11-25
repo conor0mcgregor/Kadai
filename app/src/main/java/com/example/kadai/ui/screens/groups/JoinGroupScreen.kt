@@ -125,7 +125,7 @@ fun JoinGroupScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 GroupCard(
                     name = found.name,
-                    emoji = found.emoji,
+                    photoUrl = found.photoUrl,
                     description = found.description,
                     memberCount = found.memberCount,
                     userPoints = 0,
@@ -176,7 +176,7 @@ private fun JoinGroupPreview() {
                     groupId = "group_pandilla",
                     name = "Pandilla",
                     description = "El grupo de siempre",
-                    emoji = "🏆",
+                    photoUrl = "res://group_cover_pandilla",
                     memberCount = 5
                 )
             ),

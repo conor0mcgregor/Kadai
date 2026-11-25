@@ -2,13 +2,20 @@ package com.example.kadai.ui.screens.home
 
 import com.example.kadai.domain.model.MediaType
 
+data class HomeRankingItem(
+    val userId: String,
+    val displayName: String,
+    val initial: String,
+    val points: Int
+)
+
 data class HomeGroupItem(
     val id: String,
     val name: String,
-    val emoji: String,
+    val photoUrl: String?,
+    val description: String,
     val memberCount: Int,
-    val userPoints: Int,
-    val isActive: Boolean = false
+    val topRanking: List<HomeRankingItem>
 )
 
 data class HomeChallengeItem(
@@ -35,12 +42,6 @@ data class HomeActivityItem(
 data class HomeUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
-    val userName: String = "",
-    val userInitial: String = "",
-    val userPoints: Int = 0,
-    val userRankPosition: Int? = null,
-    val challengesCount: Int = 0,
-    val streakDays: Int = 0,
     val groups: List<HomeGroupItem> = emptyList(),
     val challenge: HomeChallengeItem? = null,
     val activity: List<HomeActivityItem> = emptyList(),

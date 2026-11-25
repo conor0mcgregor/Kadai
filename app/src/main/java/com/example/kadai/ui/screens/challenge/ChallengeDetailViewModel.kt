@@ -92,7 +92,7 @@ class ChallengeDetailViewModel(
             alreadySubmitted = myProof != null,
             myProofId = myProof?.proofId,
             groups = groups.map {
-                ChallengeGroupOption(it.groupId, it.name, it.emoji)
+                ChallengeGroupOption(it.groupId, it.name)
             },
             primaryGroupId = primaryGroup?.groupId,
             participantsCount = participants,

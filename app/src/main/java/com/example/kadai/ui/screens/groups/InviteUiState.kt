@@ -5,6 +5,6 @@ data class InviteUiState(
     val error: String? = null,
     val groupId: String = "",
     val groupName: String = "",
-    val emoji: String = "🏆",
+    val photoUrl: String? = null,
     val inviteCode: String = ""
 )

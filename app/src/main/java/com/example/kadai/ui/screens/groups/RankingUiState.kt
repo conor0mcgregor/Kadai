@@ -3,7 +3,7 @@ package com.example.kadai.ui.screens.groups
 data class RankingGroupOption(
     val groupId: String,
     val name: String,
-    val emoji: String
+    val photoUrl: String? = null
 )
 
 data class RankingEntry(

@@ -4,7 +4,7 @@ data class GroupListEntry(
     val groupId: String,
     val name: String,
     val description: String,
-    val emoji: String,
+    val photoUrl: String?,
     val memberCount: Int,
     val userPoints: Int
 )

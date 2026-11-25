@@ -364,7 +364,7 @@ private fun ChallengeDetailPreview() {
                 closesAt = System.currentTimeMillis() + 8 * 3_600_000L,
                 isOpen = true,
                 alreadySubmitted = false,
-                groups = listOf(ChallengeGroupOption("group_pandilla", "Pandilla", "🏆")),
+                groups = listOf(ChallengeGroupOption("group_pandilla", "Pandilla")),
                 primaryGroupId = "group_pandilla",
                 participantsCount = 3,
                 memberCount = 5

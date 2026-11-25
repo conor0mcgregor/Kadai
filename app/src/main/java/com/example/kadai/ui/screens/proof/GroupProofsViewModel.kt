@@ -157,7 +157,7 @@ class GroupProofsViewModel(
             error = null,
             groupId = groupId,
             groupName = group.name,
-            groupEmoji = group.emoji,
+            groupPhotoUrl = group.photoUrl,
             challengeTitle = challenge?.title ?: "Reto del día",
             isOpen = isOpen,
             filter = filter,

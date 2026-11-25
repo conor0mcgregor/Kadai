@@ -42,6 +42,7 @@ import com.example.kadai.domain.model.MediaType
 import com.example.kadai.domain.model.ReactionType
 import com.example.kadai.ui.base.KadaiViewModelFactory
 import com.example.kadai.ui.components.KadaiCard
+import com.example.kadai.ui.components.GroupAvatar
 import com.example.kadai.ui.components.KadaiEmptyState
 import com.example.kadai.ui.components.KadaiErrorState
 import com.example.kadai.ui.components.KadaiLoadingState
@@ -107,12 +108,23 @@ fun GroupProofsScreen(
             state.error != null -> KadaiErrorState(message = state.error, onRetry = onRetry)
             else -> Column(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = state.challengeTitle,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        GroupAvatar(
+                            name = state.groupName,
+                            photoUrl = state.groupPhotoUrl,
+                            size = 44.dp,
+                            cornerRadius = 14.dp
+                        )
+                        Text(
+                            text = state.challengeTitle,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = TextPrimary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (state.isOpen) {
                             "Vota las pruebas de tus compañeros. La tuya no puedes votarla."
@@ -285,7 +297,7 @@ private fun GroupProofsPreview() {
                 isLoading = false,
                 groupId = "group_pandilla",
                 groupName = "Pandilla",
-                groupEmoji = "🏆",
+                groupPhotoUrl = "res://group_cover_pandilla",
                 challengeTitle = "Grita en medio de la calle",
                 isOpen = true,
                 items = listOf(

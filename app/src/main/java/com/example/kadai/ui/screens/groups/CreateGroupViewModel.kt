@@ -29,8 +29,8 @@ class CreateGroupViewModel(application: Application) : KadaiViewModel(applicatio
         _state.update { it.copy(description = value, descriptionError = null, submitError = null) }
     }
 
-    fun onEmojiChange(value: String) {
-        _state.update { it.copy(emoji = value) }
+    fun onPhotoChange(uri: String?) {
+        _state.update { it.copy(photoUri = uri, submitError = null) }
     }
 
     fun submit() {
@@ -64,10 +64,10 @@ class CreateGroupViewModel(application: Application) : KadaiViewModel(applicatio
                     groupId = groupId,
                     name = name,
                     description = description,
+                    photoUrl = current.photoUri,
                     adminId = currentUserId,
                     createdAt = System.currentTimeMillis(),
                     status = GroupStatus.ACTIVE,
-                    emoji = current.emoji,
                     inviteCode = uniqueInviteCode(name, existingCodes)
                 )
                 groupRepository.createGroup(

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kadai.ui.base.KadaiViewModelFactory
+import com.example.kadai.ui.components.GroupAvatar
 import com.example.kadai.ui.components.KadaiCard
 import com.example.kadai.ui.components.KadaiErrorState
 import com.example.kadai.ui.components.KadaiLoadingState
@@ -97,17 +98,12 @@ fun InviteScreen(
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(RoundedCornerShape(26.dp))
-                        .background(
-                            Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = state.emoji, fontSize = 42.sp)
-                }
+                GroupAvatar(
+                    name = state.groupName,
+                    photoUrl = state.photoUrl,
+                    size = 88.dp,
+                    cornerRadius = 26.dp
+                )
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = state.groupName,
@@ -214,7 +210,7 @@ private fun InvitePreview() {
                 isLoading = false,
                 groupId = "group_pandilla",
                 groupName = "Pandilla",
-                emoji = "🏆",
+                photoUrl = "res://group_cover_pandilla",
                 inviteCode = "PANDIL"
             ),
             onBack = {},

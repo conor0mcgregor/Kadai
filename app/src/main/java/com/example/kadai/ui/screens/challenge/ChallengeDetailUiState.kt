@@ -2,8 +2,7 @@ package com.example.kadai.ui.screens.challenge
 
 data class ChallengeGroupOption(
     val groupId: String,
-    val name: String,
-    val emoji: String
+    val name: String
 )
 
 data class ChallengeDetailUiState(

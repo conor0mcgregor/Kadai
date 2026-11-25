@@ -39,10 +39,10 @@ object MockData {
     // ── Grupos ────────────────────────────────────────────────────────────────
 
     val groups = listOf(
-        Group(groupId = "group_pandilla",   name = "Pandilla",    description = "El grupo de siempre",         adminId = "user_alex",   emoji = "🏆", status = GroupStatus.ACTIVE, createdAt = 1700100000L, inviteCode = "PANDIL"),
-        Group(groupId = "group_uni",        name = "Uni 2024",    description = "Compañeros de universidad",   adminId = "user_carlos", emoji = "🎯", status = GroupStatus.ACTIVE, createdAt = 1700100100L, inviteCode = "UNI202"),
-        Group(groupId = "group_curro",      name = "Curro Squad", description = "Los del trabajo",             adminId = "user_jorge",  emoji = "⚡", status = GroupStatus.ACTIVE, createdAt = 1700100200L, inviteCode = "CURROS"),
-        Group(groupId = "group_musicos",    name = "Músicos",     description = "Para los amantes de la música", adminId = "user_sara", emoji = "🎵", status = GroupStatus.ACTIVE, createdAt = 1700100300L, inviteCode = "MUSICO"),
+        Group(groupId = "group_pandilla",   name = "Pandilla",    description = "El grupo de siempre",         photoUrl = "res://group_cover_pandilla", adminId = "user_alex",   status = GroupStatus.ACTIVE, createdAt = 1700100000L, inviteCode = "PANDIL"),
+        Group(groupId = "group_uni",        name = "Uni 2024",    description = "Compañeros de universidad",   photoUrl = "res://group_cover_uni",      adminId = "user_carlos", status = GroupStatus.ACTIVE, createdAt = 1700100100L, inviteCode = "UNI202"),
+        Group(groupId = "group_curro",      name = "Curro Squad", description = "Los del trabajo",             photoUrl = "res://group_cover_curro",    adminId = "user_jorge",  status = GroupStatus.ACTIVE, createdAt = 1700100200L, inviteCode = "CURROS"),
+        Group(groupId = "group_musicos",    name = "Músicos",     description = "Para los amantes de la música", photoUrl = "res://group_cover_musicos", adminId = "user_sara",   status = GroupStatus.ACTIVE, createdAt = 1700100300L, inviteCode = "MUSICO"),
     )
 
     // ── Membresías ────────────────────────────────────────────────────────────

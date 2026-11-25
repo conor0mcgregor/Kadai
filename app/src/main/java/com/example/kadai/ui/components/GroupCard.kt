@@ -43,7 +43,7 @@ import com.example.kadai.ui.theme.TextPrimary
 @Composable
 fun GroupCard(
     name: String,
-    emoji: String,
+    photoUrl: String?,
     description: String,
     memberCount: Int,
     userPoints: Int,
@@ -61,19 +61,12 @@ fun GroupCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(PurplePrimary, Color(0xFF9333EA))
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = emoji, fontSize = 24.sp)
-        }
+        GroupAvatar(
+            name = name,
+            photoUrl = photoUrl,
+            size = 50.dp,
+            cornerRadius = 16.dp
+        )
 
         Column(
             modifier = Modifier.weight(1f),

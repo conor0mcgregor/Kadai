@@ -1,5 +1,6 @@
-﻿package com.example.kadai.ui.screens.home
+package com.example.kadai.ui.screens.home
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -28,13 +29,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,9 +57,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kadai.domain.model.MediaType
 import com.example.kadai.domain.usecase.formatCountdown
 import com.example.kadai.ui.components.ChallengeCard
+import com.example.kadai.ui.components.GroupAvatar
 import com.example.kadai.ui.components.KadaiCard
 import com.example.kadai.ui.components.KadaiErrorState
 import com.example.kadai.ui.components.KadaiLoadingState
+import com.example.kadai.ui.components.KadaiPrimaryButton
 import com.example.kadai.ui.components.KadaiSectionHeader
 import com.example.kadai.ui.components.ProofThumbnail
 import com.example.kadai.ui.theme.Background
@@ -145,6 +153,7 @@ private fun HomeContent(
         }
     }
     val challenge = state.challenge
+    var expandedGroupId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -152,25 +161,6 @@ private fun HomeContent(
             .statusBarsPadding(),
         contentPadding = PaddingValues(top = 10.dp, bottom = 120.dp)
     ) {
-        item {
-            HomeHeader(
-                userName = state.userName,
-                userInitial = state.userInitial,
-                streakDays = state.streakDays
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        item {
-            StatsStrip(
-                points = state.userPoints,
-                rankPosition = state.userRankPosition,
-                challengesCount = state.challengesCount,
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
-            Spacer(modifier = Modifier.height(26.dp))
-        }
-
         item {
             KadaiSectionHeader(
                 title = "Mis grupos",
@@ -192,10 +182,13 @@ private fun HomeContent(
             }
         } else {
             item {
-                GroupsRow(
+                HomeGroupsList(
                     groups = state.groups,
-                    onGroupClick = onGroupClick,
-                    onCreateGroupClick = onCreateGroupClick
+                    expandedGroupId = expandedGroupId,
+                    onGroupToggle = { groupId ->
+                        expandedGroupId = if (expandedGroupId == groupId) null else groupId
+                    },
+                    onOpenGroup = onGroupClick
                 )
                 Spacer(modifier = Modifier.height(26.dp))
             }
@@ -315,258 +308,173 @@ private fun BackgroundGlow() {
 }
 
 @Composable
-private fun HomeHeader(
-    userName: String,
-    userInitial: String,
-    streakDays: Int
+private fun HomeGroupsList(
+    groups: List<HomeGroupItem>,
+    expandedGroupId: String?,
+    onGroupToggle: (String) -> Unit,
+    onOpenGroup: (String) -> Unit
 ) {
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        groups.forEach { group ->
+            HomeGroupCard(
+                group = group,
+                expanded = group.id == expandedGroupId,
+                onToggle = { onGroupToggle(group.id) },
+                onOpenGroup = { onOpenGroup(group.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeGroupCard(
+    group: HomeGroupItem,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onOpenGroup: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Surface)
+            .border(
+                width = if (expanded) 1.5.dp else 1.dp,
+                color = if (expanded) PurpleSoft.copy(alpha = 0.55f) else Border,
+                shape = RoundedCornerShape(18.dp)
+            )
+            .animateContentSize()
+            .clickable { onToggle() }
+            .padding(14.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            GroupAvatar(
+                name = group.name,
+                photoUrl = group.photoUrl,
+                size = 54.dp,
+                cornerRadius = 16.dp
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = group.name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (group.description.isNotBlank()) {
+                    Text(
+                        text = group.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = if (group.memberCount == 1) "1 miembro" else "${group.memberCount} miembros",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextDisabled
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = if (expanded) "Ocultar ranking" else "Ver top 3 del ranking",
+                tint = TextDisabled,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+
+        if (expanded) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Border)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Top 3 del ranking",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = PurpleSoft
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (group.topRanking.isEmpty()) {
+                Text(
+                    text = "Todavía no hay puntos en este grupo.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextDisabled
+                )
+            } else {
+                group.topRanking.forEachIndexed { index, item ->
+                    HomeRankingRow(position = index + 1, item = item)
+                    if (index != group.topRanking.lastIndex) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            KadaiPrimaryButton(text = "Ver grupo", onClick = onOpenGroup)
+        }
+    }
+}
+
+@Composable
+private fun HomeRankingRow(position: Int, item: HomeRankingItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
-                    )
-                    .border(2.dp, PurpleSoft.copy(alpha = 0.45f), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = userInitial,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 18.sp
-                    ),
-                    color = Color.White
-                )
-            }
-
-            Column {
-                Text(
-                    text = "HOLA DE NUEVO",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        letterSpacing = 1.2.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = PurpleSoft
-                )
-                Text(
-                    text = userName,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = (-0.3).sp
-                    ),
-                    color = TextPrimary
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(Warning.copy(alpha = 0.12f))
-                .border(1.dp, Warning.copy(alpha = 0.28f), RoundedCornerShape(20.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text("🔥", fontSize = 13.sp)
-            Text(
-                text = "$streakDays d",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = Warning
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatsStrip(
-    points: Int,
-    rankPosition: Int?,
-    challengesCount: Int,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Brush.linearGradient(colors = listOf(Surface, Color(0xFF1B1824))))
-            .border(1.dp, BorderStrong, RoundedCornerShape(20.dp))
-            .padding(vertical = 16.dp, horizontal = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            StatColumn(
-                value = points.toString(),
-                label = "PUNTOS",
-                valueColor = PurpleSoft
-            )
-            StatDivider()
-            StatColumn(
-                value = rankPosition?.let { "#$it" } ?: "—",
-                label = "RANKING",
-                valueColor = Color.White
-            )
-            StatDivider()
-            StatColumn(
-                value = challengesCount.toString(),
-                label = "RETOS",
-                valueColor = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatColumn(value: String, label: String, valueColor: Color) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.4).sp
-            ),
-            color = valueColor
+            text = when (position) {
+                1 -> "🥇"
+                2 -> "🥈"
+                3 -> "🥉"
+                else -> position.toString()
+            },
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.size(width = 24.dp, height = 24.dp)
         )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
-                letterSpacing = 0.8.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
-            color = TextDisabled
-        )
-    }
-}
-
-@Composable
-private fun StatDivider() {
-    Box(
-        modifier = Modifier
-            .size(width = 1.dp, height = 32.dp)
-            .background(Border)
-    )
-}
-
-@Composable
-private fun GroupsRow(
-    groups: List<HomeGroupItem>,
-    onGroupClick: (String) -> Unit,
-    onCreateGroupClick: () -> Unit
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(groups, key = { it.id }) { group ->
-            GroupPill(group = group, onClick = { onGroupClick(group.id) })
-        }
-        item {
-            AddGroupPill(onClick = onCreateGroupClick)
-        }
-    }
-}
-
-@Composable
-private fun GroupPill(group: HomeGroupItem, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.clickable { onClick() }
-    ) {
-        Box(modifier = Modifier.size(60.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF8B5CF6)))
-                    )
-                    .border(
-                        width = if (group.isActive) 2.dp else 1.dp,
-                        color = if (group.isActive) PurpleSoft else Border,
-                        shape = RoundedCornerShape(20.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = group.emoji, fontSize = 24.sp)
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (group.isActive) PurplePrimary else Color(0xFF262633))
-                    .border(1.5.dp, Background, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 5.dp, vertical = 1.dp)
-            ) {
-                Text(
-                    text = "${group.memberCount}",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    ),
-                    color = Color.White
-                )
-            }
-        }
-
-        Text(
-            text = group.name,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = if (group.isActive) FontWeight.Bold else FontWeight.Medium
-            ),
-            color = if (group.isActive) TextPrimary else TextDisabled,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun AddGroupPill(onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.clickable { onClick() }
-    ) {
         Box(
             modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(SurfaceElevated)
-                .border(1.dp, Border, RoundedCornerShape(20.dp)),
+                .size(30.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                    Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = "Crear grupo",
-                tint = PurpleSoft,
-                modifier = Modifier.size(24.dp)
+            Text(
+                text = item.initial,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
             )
         }
         Text(
-            text = "Crear",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextDisabled
+            text = item.displayName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "${item.points} pts",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = PurpleSoft
         )
     }
 }
@@ -708,16 +616,38 @@ private fun HomeScreenPreview() {
         HomeScreen(
             state = HomeUiState(
                 isLoading = false,
-                userName = "Alex García",
-                userInitial = "A",
-                userPoints = 1840,
-                userRankPosition = 2,
-                challengesCount = 12,
-                streakDays = 7,
                 groups = listOf(
-                    HomeGroupItem("group_pandilla", "Pandilla", "🏆", 5, 1840, isActive = true),
-                    HomeGroupItem("group_uni", "Uni 2024", "🎯", 3, 145),
-                    HomeGroupItem("group_curro", "Curro Squad", "⚡", 2, 0)
+                    HomeGroupItem(
+                        id = "group_pandilla",
+                        name = "Pandilla",
+                        photoUrl = "res://group_cover_pandilla",
+                        description = "El grupo de siempre",
+                        memberCount = 5,
+                        topRanking = listOf(
+                            HomeRankingItem("user_alex", "Alex García", "A", 440),
+                            HomeRankingItem("user_maria", "María R.", "M", 200),
+                            HomeRankingItem("user_carlos", "Carlos M.", "C", 180)
+                        )
+                    ),
+                    HomeGroupItem(
+                        id = "group_uni",
+                        name = "Uni 2024",
+                        photoUrl = "res://group_cover_uni",
+                        description = "Compañeros de universidad",
+                        memberCount = 3,
+                        topRanking = listOf(
+                            HomeRankingItem("user_carlos", "Carlos M.", "C", 145),
+                            HomeRankingItem("user_alex", "Alex García", "A", 90)
+                        )
+                    ),
+                    HomeGroupItem(
+                        id = "group_curro",
+                        name = "Curro Squad",
+                        photoUrl = "res://group_cover_curro",
+                        description = "Los del trabajo",
+                        memberCount = 2,
+                        topRanking = emptyList()
+                    )
                 ),
                 challenge = HomeChallengeItem(
                     dailyChallengeId = "daily_001",

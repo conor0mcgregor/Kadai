@@ -59,7 +59,7 @@ class JoinGroupViewModel(application: Application) : KadaiViewModel(application)
                             groupId = group.groupId,
                             name = group.name,
                             description = group.description,
-                            emoji = group.emoji,
+                            photoUrl = group.photoUrl,
                             memberCount = groupRepository.getMembershipsForGroup(group.groupId).size
                         )
                     )

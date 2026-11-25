@@ -36,7 +36,7 @@ class InviteViewModel(
                     isLoading = false,
                     groupId = group.groupId,
                     groupName = group.name,
-                    emoji = group.emoji,
+                    photoUrl = group.photoUrl,
                     inviteCode = group.inviteCode
                 )
             }.onSuccess { _state.value = it }

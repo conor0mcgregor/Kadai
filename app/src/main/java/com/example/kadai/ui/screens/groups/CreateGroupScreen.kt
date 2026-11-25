@@ -1,10 +1,10 @@
 package com.example.kadai.ui.screens.groups
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
@@ -26,31 +24,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kadai.ui.components.GroupAvatar
 import com.example.kadai.ui.components.KadaiCard
 import com.example.kadai.ui.components.KadaiPrimaryButton
 import com.example.kadai.ui.components.KadaiSecondaryButton
 import com.example.kadai.ui.components.KadaiTextField
 import com.example.kadai.ui.components.KadaiTopBar
 import com.example.kadai.ui.theme.Background
-import com.example.kadai.ui.theme.Border
 import com.example.kadai.ui.theme.ErrorColor
 import com.example.kadai.ui.theme.KadaiTheme
-import com.example.kadai.ui.theme.PurplePrimary
-import com.example.kadai.ui.theme.PurpleSoft
-import com.example.kadai.ui.theme.Surface
 import com.example.kadai.ui.theme.TextDisabled
 import com.example.kadai.ui.theme.TextPrimary
-
-private val GROUP_EMOJIS = listOf("🏆", "🎯", "⚡", "🎵", "🔥", "🍕", "🎮", "🌊")
 
 @Composable
 fun CreateGroupRoute(
@@ -69,7 +58,7 @@ fun CreateGroupRoute(
         onBack = onBack,
         onNameChange = viewModel::onNameChange,
         onDescriptionChange = viewModel::onDescriptionChange,
-        onEmojiChange = viewModel::onEmojiChange,
+        onPhotoChange = viewModel::onPhotoChange,
         onSubmit = viewModel::submit
     )
 }
@@ -80,10 +69,21 @@ fun CreateGroupScreen(
     onBack: () -> Unit,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
-    onEmojiChange: (String) -> Unit,
+    onPhotoChange: (String?) -> Unit,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val photoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        onPhotoChange(uri?.toString())
+    }
+    val pickPhoto = {
+        photoPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -104,39 +104,40 @@ fun CreateGroupScreen(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Elige un emoji, un nombre y una descripción breve. Después podrás invitar a quien quieras.",
+                text = "Añade una foto, un nombre y una descripción breve. Después podrás invitar a quien quieras.",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextDisabled
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Emoji del grupo",
-                style = MaterialTheme.typography.labelMedium,
-                color = TextPrimary
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GROUP_EMOJIS.forEach { emoji ->
-                    val selected = emoji == state.emoji
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (selected) PurpleSoft.copy(alpha = 0.18f) else Surface)
-                            .border(
-                                width = if (selected) 2.dp else 1.dp,
-                                color = if (selected) PurpleSoft else Border,
-                                shape = RoundedCornerShape(14.dp)
-                            )
-                            .clickable { onEmojiChange(emoji) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = emoji, fontSize = 20.sp)
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                GroupAvatar(
+                    name = state.name.ifBlank { "Grupo" },
+                    photoUrl = state.photoUri,
+                    size = 84.dp,
+                    cornerRadius = 24.dp,
+                    contentDescription = "Foto del grupo"
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = if (state.photoUri == null) "Sin foto todavía" else "Foto lista",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = TextPrimary
+                    )
+                    KadaiSecondaryButton(
+                        text = if (state.photoUri == null) "Elegir foto" else "Cambiar foto",
+                        onClick = pickPhoto
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             KadaiTextField(
                 value = state.name,
@@ -163,17 +164,13 @@ fun CreateGroupScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = state.emoji, fontSize = 24.sp)
-                    }
+                    GroupAvatar(
+                        name = state.name.ifBlank { "Grupo" },
+                        photoUrl = state.photoUri,
+                        size = 52.dp,
+                        cornerRadius = 16.dp,
+                        contentDescription = null
+                    )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = state.name.ifBlank { "Tu nuevo grupo" },
@@ -220,12 +217,12 @@ private fun CreateGroupPreview() {
             state = CreateGroupUiState(
                 name = "Pandilla",
                 description = "El grupo de siempre",
-                emoji = "🏆"
+                photoUri = "res://group_cover_pandilla"
             ),
             onBack = {},
             onNameChange = {},
             onDescriptionChange = {},
-            onEmojiChange = {},
+            onPhotoChange = {},
             onSubmit = {}
         )
     }

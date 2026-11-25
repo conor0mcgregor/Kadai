@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.example.kadai.domain.model.MemberRole
 import com.example.kadai.domain.model.MembershipStatus
-import com.example.kadai.domain.model.Score
+import com.example.kadai.domain.usecase.buildGroupRanking
 import com.example.kadai.ui.base.KadaiViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,53 +62,47 @@ class RankingViewModel(
         val scores = rankingRepository.observeRankingForGroup(selectedGroupId).first()
         val pointsByUser = scores.associate { it.userId to it.totalPoints }
 
-        val ordered = memberships
-            .map { membership ->
-                val user = userRepository.getUser(membership.userId)
-                RankingRow(
-                    userId = membership.userId,
-                    displayName = user?.username ?: "Miembro",
-                    initial = user?.username?.firstOrNull()?.uppercase() ?: "?",
-                    points = pointsByUser[membership.userId] ?: 0,
-                    isInactive = membership.status == MembershipStatus.INACTIVE,
-                    isAdmin = membership.role == MemberRole.ADMIN
-                )
-            }
-            .sortedWith(compareByDescending<RankingRow> { it.points }.thenBy { it.displayName })
+        val memberInfo = memberships.map { membership ->
+            val user = userRepository.getUser(membership.userId)
+            MemberInfo(
+                userId = membership.userId,
+                displayName = user?.username ?: "Miembro",
+                initial = user?.username?.firstOrNull()?.uppercase() ?: "?",
+                isInactive = membership.status == MembershipStatus.INACTIVE,
+                isAdmin = membership.role == MemberRole.ADMIN
+            )
+        }
+        val infoByUserId = memberInfo.associateBy { it.userId }
+        val orderedIds = memberInfo.sortedBy { it.displayName.lowercase() }.map { it.userId }
 
-        var previousPoints: Int? = null
-        var previousPosition = 0
-        val entries = ordered.mapIndexed { index, row ->
-            val position = if (row.points == previousPoints) previousPosition else index + 1
-            previousPoints = row.points
-            previousPosition = position
+        val entries = buildGroupRanking(orderedIds, pointsByUser).map { position ->
+            val info = infoByUserId.getValue(position.userId)
             RankingEntry(
-                position = position,
-                userId = row.userId,
-                displayName = row.displayName,
-                initial = row.initial,
-                points = row.points,
-                isCurrentUser = row.userId == currentUserId,
-                isInactive = row.isInactive,
-                isAdmin = row.isAdmin
+                position = position.position,
+                userId = position.userId,
+                displayName = info.displayName,
+                initial = info.initial,
+                points = position.points,
+                isCurrentUser = position.userId == currentUserId,
+                isInactive = info.isInactive,
+                isAdmin = info.isAdmin
             )
         }
 
         return RankingUiState(
             isLoading = false,
             error = null,
-            groups = groups.map { RankingGroupOption(it.groupId, it.name, it.emoji) },
+            groups = groups.map { RankingGroupOption(it.groupId, it.name, it.photoUrl) },
             selectedGroupId = selectedGroupId,
             groupName = group.name,
             entries = entries
         )
     }
 
-    private data class RankingRow(
+    private data class MemberInfo(
         val userId: String,
         val displayName: String,
         val initial: String,
-        val points: Int,
         val isInactive: Boolean,
         val isAdmin: Boolean
     )
