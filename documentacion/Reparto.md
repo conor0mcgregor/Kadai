@@ -33,7 +33,7 @@
 | T-09 | **6 repositorios falsos + `MockData` + `AppContainer`** (funcionan sin Firebase) | OSSAMA |
 | C-01 | `KadaiBottomNav.kt` (barra inferior extraída) | OSSAMA |
 | — | Tema KADAI, `LoginScreen` y `HomeScreen` con diseño y datos de ejemplo | OSSAMA |
-| T-02 | 🟡 Parcial: `Routes.kt` y `KadaiNavHost.kt` existen, pero **solo con LOGIN y HOME** | OSSAMA |
+| T-02 | ✅ Completo: `Routes.kt` y `KadaiNavHost.kt` con todas las rutas de los módulos 3.2 y 3.3 | OSSAMA |
 
 > Nota: en `Pantallas_y_Tareas.md` algunas de estas tareas siguen apareciendo como pendientes. **Manda este tablero** para el estado real.
 
@@ -56,27 +56,27 @@
 
 | ID | Tarea | Responsable | Estado |
 |---|---|---|---|
-| P-05 | Home (adaptar: quitar datos hardcodeados y navegación interna) |  | 🟡 Diseño listo |
-| P-06 | Detalle del reto |  | ⬜ Pendiente |
-| P-07 | Subir / sustituir prueba |  | ⬜ Pendiente |
-| P-08 | Pruebas del grupo (listado + votación) |  | ⬜ Pendiente |
-| P-09 | Detalle de prueba (multimedia, voto, reacciones, favorito) |  | ⬜ Pendiente |
-| P-16 | Historial de retos y resultados |  | ⬜ Pendiente |
-| P-23 | Proponer reto |  | ⬜ Pendiente |
-| C-10 | `ChallengeCard` (extraer de Home) |  | ⬜ Pendiente |
-| C-12 | `ProofPicker` (selector foto/vídeo) |  | ⬜ Pendiente |
+| P-05 | Home (adaptar: quitar datos hardcodeados y navegación interna) | OSSAMA | ✅ Hecho |
+| P-06 | Detalle del reto | OSSAMA | ✅ Hecho |
+| P-07 | Subir / sustituir prueba | OSSAMA | ✅ Hecho |
+| P-08 | Pruebas del grupo (listado + votación) | OSSAMA | ✅ Hecho |
+| P-09 | Detalle de prueba (multimedia, voto, reacciones, favorito) | OSSAMA | ✅ Hecho |
+| P-16 | Historial de retos y resultados | OSSAMA | ✅ Hecho |
+| P-23 | Proponer reto | OSSAMA | ✅ Hecho |
+| C-10 | `ChallengeCard` (extraer de Home) | OSSAMA | ✅ Hecho |
+| C-12 | `ProofPicker` (selector foto/vídeo) | OSSAMA | ✅ Hecho |
 
 ### 3.3. Grupos y ranking — OSSAMA
 
 | ID | Tarea | Responsable | Estado |
 |---|---|---|---|
-| P-10 | Grupos (listado, crear, unirse por código) |  | ⬜ Pendiente |
-| P-11 | Crear grupo |  | ⬜ Pendiente |
-| P-12 | Detalle del grupo |  | ⬜ Pendiente |
-| P-13 | Invitar / unirse a grupo |  | ⬜ Pendiente |
-| P-14 | Gestionar miembros |  | ⬜ Pendiente |
-| P-15 | Ranking del grupo |  | ⬜ Pendiente |
-| C-08 | `GroupCard` / `MemberRow` |  | ⬜ Pendiente |
+| P-10 | Grupos (listado, crear, unirse por código) | OSSAMA | ✅ Hecho |
+| P-11 | Crear grupo | OSSAMA | ✅ Hecho |
+| P-12 | Detalle del grupo | OSSAMA | ✅ Hecho |
+| P-13 | Invitar / unirse a grupo | OSSAMA | ✅ Hecho |
+| P-14 | Gestionar miembros | OSSAMA | ✅ Hecho |
+| P-15 | Ranking del grupo | OSSAMA | ✅ Hecho |
+| C-08 | `GroupCard` / `MemberRow` | OSSAMA | ✅ Hecho |
 
 ### 3.4. Perfil, galerías y funcionalidades sociales — POR ELEGIR
 
