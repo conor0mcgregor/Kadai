@@ -39,10 +39,10 @@ object MockData {
     // ── Grupos ────────────────────────────────────────────────────────────────
 
     val groups = listOf(
-        Group(groupId = "group_pandilla",   name = "Pandilla",    description = "El grupo de siempre",         adminId = "user_alex",   emoji = "🏆", status = GroupStatus.ACTIVE, createdAt = 1700100000L),
-        Group(groupId = "group_uni",        name = "Uni 2024",    description = "Compañeros de universidad",   adminId = "user_carlos", emoji = "🎯", status = GroupStatus.ACTIVE, createdAt = 1700100100L),
-        Group(groupId = "group_curro",      name = "Curro Squad", description = "Los del trabajo",             adminId = "user_jorge",  emoji = "⚡", status = GroupStatus.ACTIVE, createdAt = 1700100200L),
-        Group(groupId = "group_musicos",    name = "Músicos",     description = "Para los amantes de la música", adminId = "user_sara", emoji = "🎵", status = GroupStatus.ACTIVE, createdAt = 1700100300L),
+        Group(groupId = "group_pandilla",   name = "Pandilla",    description = "El grupo de siempre",         adminId = "user_alex",   emoji = "🏆", status = GroupStatus.ACTIVE, createdAt = 1700100000L, inviteCode = "PANDIL"),
+        Group(groupId = "group_uni",        name = "Uni 2024",    description = "Compañeros de universidad",   adminId = "user_carlos", emoji = "🎯", status = GroupStatus.ACTIVE, createdAt = 1700100100L, inviteCode = "UNI202"),
+        Group(groupId = "group_curro",      name = "Curro Squad", description = "Los del trabajo",             adminId = "user_jorge",  emoji = "⚡", status = GroupStatus.ACTIVE, createdAt = 1700100200L, inviteCode = "CURROS"),
+        Group(groupId = "group_musicos",    name = "Músicos",     description = "Para los amantes de la música", adminId = "user_sara", emoji = "🎵", status = GroupStatus.ACTIVE, createdAt = 1700100300L, inviteCode = "MUSICO"),
     )
 
     // ── Membresías ────────────────────────────────────────────────────────────
@@ -104,6 +104,10 @@ object MockData {
         Vote(voteId = "vote_001", proofId = "proof_001", groupId = "group_pandilla", userId = "user_alex",   isPositive = true,  createdAt = System.currentTimeMillis() - 600_000L, updatedAt = System.currentTimeMillis() - 600_000L),
         Vote(voteId = "vote_002", proofId = "proof_001", groupId = "group_pandilla", userId = "user_carlos", isPositive = true,  createdAt = System.currentTimeMillis() - 500_000L, updatedAt = System.currentTimeMillis() - 500_000L),
         Vote(voteId = "vote_003", proofId = "proof_001", groupId = "group_pandilla", userId = "user_jorge",  isPositive = false, createdAt = System.currentTimeMillis() - 400_000L, updatedAt = System.currentTimeMillis() - 400_000L),
+        Vote(voteId = "vote_004", proofId = "proof_002", groupId = "group_uni",      userId = "user_alex",   isPositive = true,  createdAt = System.currentTimeMillis() - 700_000L, updatedAt = System.currentTimeMillis() - 700_000L),
+        Vote(voteId = "vote_005", proofId = "proof_002", groupId = "group_uni",      userId = "user_maria",  isPositive = true,  createdAt = System.currentTimeMillis() - 650_000L, updatedAt = System.currentTimeMillis() - 650_000L),
+        Vote(voteId = "vote_006", proofId = "proof_003", groupId = "group_pandilla", userId = "user_alex",   isPositive = true,  createdAt = System.currentTimeMillis() - 300_000L, updatedAt = System.currentTimeMillis() - 300_000L),
+        Vote(voteId = "vote_007", proofId = "proof_003", groupId = "group_pandilla", userId = "user_maria",  isPositive = false, createdAt = System.currentTimeMillis() - 250_000L, updatedAt = System.currentTimeMillis() - 250_000L),
     )
 
     // ── Puntuaciones ──────────────────────────────────────────────────────────
@@ -116,6 +120,11 @@ object MockData {
         Score(groupId = "group_pandilla", userId = "user_jorge",  dailyChallengeId = "daily_prev1", completionPoints = 0,   positionPoints = 0,  timePoints = 0,  totalPoints = 0,   calculatedAt = 1700386400L),
         Score(groupId = "group_pandilla", userId = "user_alex",   dailyChallengeId = "daily_prev2", completionPoints = 100, positionPoints = 50, timePoints = 70, totalPoints = 220, calculatedAt = 1700300000L),
         Score(groupId = "group_pandilla", userId = "user_carlos", dailyChallengeId = "daily_prev2", completionPoints = 100, positionPoints = 40, timePoints = 60, totalPoints = 200, calculatedAt = 1700300000L),
+        Score(groupId = "group_uni",      userId = "user_carlos", dailyChallengeId = "daily_prev1", completionPoints = 100, positionPoints = 20, timePoints = 45, totalPoints = 165, calculatedAt = 1700386400L),
+        Score(groupId = "group_uni",      userId = "user_alex",   dailyChallengeId = "daily_prev1", completionPoints = 100, positionPoints = 10, timePoints = 35, totalPoints = 145, calculatedAt = 1700386400L),
+        Score(groupId = "group_uni",      userId = "user_maria",  dailyChallengeId = "daily_prev1", completionPoints = 0,   positionPoints = 0,  timePoints = 0,  totalPoints = 0,   calculatedAt = 1700386400L),
+        Score(groupId = "group_musicos",  userId = "user_sara",   dailyChallengeId = "daily_prev2", completionPoints = 100, positionPoints = 10, timePoints = 25, totalPoints = 135, calculatedAt = 1700300000L),
+        Score(groupId = "group_musicos",  userId = "user_alex",   dailyChallengeId = "daily_prev2", completionPoints = 100, positionPoints = 0,  timePoints = 15, totalPoints = 115, calculatedAt = 1700300000L),
     )
 
     // ── Reacciones ────────────────────────────────────────────────────────────

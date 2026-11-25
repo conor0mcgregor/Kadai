@@ -2,12 +2,13 @@ package com.example.kadai.data.repository
 
 import com.example.kadai.data.mock.MockData
 import com.example.kadai.domain.model.Group
+import com.example.kadai.domain.model.GroupStatus
 import com.example.kadai.domain.model.Membership
 import com.example.kadai.domain.model.MembershipStatus
 import com.example.kadai.domain.repository.GroupRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 
 class FakeGroupRepository : GroupRepository {
 
@@ -15,11 +16,11 @@ class FakeGroupRepository : GroupRepository {
     private val membershipsState = MutableStateFlow(MockData.memberships.toMutableList())
 
     override fun observeGroupsForUser(userId: String): Flow<List<Group>> {
-        return membershipsState.map { memberships ->
+        return combine(groupsState, membershipsState) { groups, memberships ->
             val groupIds = memberships
                 .filter { it.userId == userId && it.status == MembershipStatus.ACTIVE }
                 .map { it.groupId }
-            groupsState.value.filter { it.groupId in groupIds }
+            groups.filter { it.groupId in groupIds && it.status == GroupStatus.ACTIVE }
         }
     }
 
@@ -44,6 +45,12 @@ class FakeGroupRepository : GroupRepository {
         groupsState.value = current
     }
 
+    override suspend fun deleteGroup(groupId: String) {
+        groupsState.value = groupsState.value.filterNot { it.groupId == groupId }.toMutableList()
+        membershipsState.value =
+            membershipsState.value.filterNot { it.groupId == groupId }.toMutableList()
+    }
+
     override suspend fun addMember(membership: Membership) {
         membershipsState.value = (membershipsState.value + membership).toMutableList()
     }
@@ -58,5 +65,13 @@ class FakeGroupRepository : GroupRepository {
             )
         }
         membershipsState.value = current
+    }
+
+    override suspend fun getGroupByInviteCode(inviteCode: String): Group? {
+        val normalized = inviteCode.trim().uppercase()
+        if (normalized.isEmpty()) return null
+        return groupsState.value.find {
+            it.status == GroupStatus.ACTIVE && it.inviteCode.trim().uppercase() == normalized
+        }
     }
 }

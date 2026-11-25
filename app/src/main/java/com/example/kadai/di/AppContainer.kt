@@ -1,5 +1,6 @@
 package com.example.kadai.di
 
+import com.example.kadai.data.mock.MockData
 import com.example.kadai.data.repository.FakeChallengeRepository
 import com.example.kadai.data.repository.FakeGroupRepository
 import com.example.kadai.data.repository.FakeNotificationRepository
@@ -20,6 +21,12 @@ import com.example.kadai.domain.repository.UserRepository
  * basta con cambiar las implementaciones aquí sin tocar el dominio ni las pantallas.
  */
 class AppContainer {
+    /**
+     * Usuario de la sesión simulada. Cuando se integre Firebase Authentication
+     * este valor pasará a proceder del proveedor de autenticación.
+     */
+    val currentUserId: String = MockData.currentUserId
+
     val userRepository: UserRepository = FakeUserRepository()
     val groupRepository: GroupRepository = FakeGroupRepository()
     val challengeRepository: ChallengeRepository = FakeChallengeRepository()

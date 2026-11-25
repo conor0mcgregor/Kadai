@@ -11,6 +11,8 @@ interface GroupRepository {
     suspend fun getMembershipsForGroup(groupId: String): List<Membership>
     suspend fun createGroup(group: Group, adminMembership: Membership)
     suspend fun updateGroup(group: Group)
+    suspend fun deleteGroup(groupId: String)
     suspend fun addMember(membership: Membership)
     suspend fun removeMember(groupId: String, userId: String)
+    suspend fun getGroupByInviteCode(inviteCode: String): Group?
 }
