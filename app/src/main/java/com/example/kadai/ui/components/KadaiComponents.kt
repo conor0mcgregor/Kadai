@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kadai.ui.theme.Border
 import com.example.kadai.ui.theme.BorderStrong
@@ -71,6 +72,8 @@ fun KadaiTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     isError: Boolean = false,
     errorMessage: String? = null,
+    singleLine: Boolean = true,
+    height: Dp = 54.dp,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -92,13 +95,13 @@ fun KadaiTextField(
             PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        singleLine = true,
+        singleLine = singleLine,
         modifier = modifier.fillMaxWidth(),
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .height(height)
                     .clip(RoundedCornerShape(14.dp))
                     .background(Surface)
                     .border(
@@ -107,11 +110,16 @@ fun KadaiTextField(
                         shape = RoundedCornerShape(14.dp)
                     )
                     .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
+                contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (singleLine) Modifier
+                            else Modifier.padding(top = 14.dp)
+                        )
                 ) {
                     // Leading icon
                     Icon(
