@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -53,12 +54,14 @@ import com.example.kadai.ui.theme.TextGhost
  *
  * @param currentRoute    Ruta actualmente seleccionada.
  * @param notifCount      Número de notificaciones no leídas (badge).
+ * @param availableRoutes Rutas con pantalla implementada. Las demás se muestran atenuadas.
  * @param onRouteChange   Callback invocado al pulsar un ítem.
  */
 @Composable
 fun KadaiBottomNav(
     currentRoute: String = "home",
     notifCount: Int = 0,
+    availableRoutes: Set<String> = setOf("home", "groups", "challenge", "notifs", "profile"),
     onRouteChange: (String) -> Unit = {}
 ) {
     Box(
@@ -78,8 +81,8 @@ fun KadaiBottomNav(
             KadaiNavItem(
                 icon = Icons.Outlined.Home,
                 label = "Inicio",
-                route = "home",
                 isSelected = currentRoute == "home",
+                enabled = "home" in availableRoutes,
                 onClick = { onRouteChange("home") }
             )
 
@@ -87,15 +90,17 @@ fun KadaiBottomNav(
             KadaiNavItem(
                 icon = Icons.Outlined.Group,
                 label = "Grupos",
-                route = "groups",
                 isSelected = currentRoute == "groups",
+                enabled = "groups" in availableRoutes,
                 onClick = { onRouteChange("groups") }
             )
 
             // 3. RETO (Botón central protagonista / FAB)
+            val challengeEnabled = "challenge" in availableRoutes
             Box(
                 modifier = Modifier
                     .size(54.dp)
+                    .alpha(if (challengeEnabled) 1f else 0.45f)
                     .clip(RoundedCornerShape(18.dp))
                     .background(
                         brush = Brush.linearGradient(
@@ -103,7 +108,7 @@ fun KadaiBottomNav(
                         )
                     )
                     .border(2.dp, PurpleSoft.copy(alpha = 0.4f), RoundedCornerShape(18.dp))
-                    .clickable { onRouteChange("challenge") },
+                    .clickable(enabled = challengeEnabled) { onRouteChange("challenge") },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -118,8 +123,8 @@ fun KadaiBottomNav(
             KadaiNavItem(
                 icon = Icons.Outlined.Notifications,
                 label = "Avisos",
-                route = "notifs",
                 isSelected = currentRoute == "notifs",
+                enabled = "notifs" in availableRoutes,
                 badgeCount = notifCount,
                 onClick = { onRouteChange("notifs") }
             )
@@ -128,8 +133,8 @@ fun KadaiBottomNav(
             KadaiNavItem(
                 icon = Icons.Outlined.Person,
                 label = "Perfil",
-                route = "profile",
                 isSelected = currentRoute == "profile",
+                enabled = "profile" in availableRoutes,
                 onClick = { onRouteChange("profile") }
             )
         }
@@ -140,8 +145,8 @@ fun KadaiBottomNav(
 private fun KadaiNavItem(
     icon: ImageVector,
     label: String,
-    route: String,
     isSelected: Boolean,
+    enabled: Boolean,
     badgeCount: Int = 0,
     onClick: () -> Unit
 ) {
@@ -154,9 +159,11 @@ private fun KadaiNavItem(
 
     Box(
         modifier = Modifier
+            .alpha(if (enabled) 1f else 0.4f)
             .clip(RoundedCornerShape(16.dp))
             .background(animatedBg)
             .clickable(
+                enabled = enabled,
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onClick() }
@@ -169,7 +176,7 @@ private fun KadaiNavItem(
         ) {
             BadgedBox(
                 badge = {
-                    if (badgeCount > 0) {
+                    if (enabled && badgeCount > 0) {
                         Badge(
                             containerColor = PurplePrimary,
                             contentColor   = Color.White
@@ -184,7 +191,7 @@ private fun KadaiNavItem(
             ) {
                 Icon(
                     imageVector     = icon,
-                    contentDescription = label,
+                    contentDescription = if (enabled) label else "$label (próximamente)",
                     tint            = iconTint,
                     modifier        = Modifier.size(22.dp)
                 )

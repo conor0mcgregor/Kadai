@@ -59,6 +59,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kadai.ui.components.KadaiPrimaryButton
 import com.example.kadai.ui.components.KadaiTextField
 import com.example.kadai.ui.theme.Background
 import com.example.kadai.ui.theme.Border
@@ -391,40 +392,6 @@ fun KadaiLogoMark(modifier: Modifier = Modifier) {
                 letterSpacing = 2.sp
             ),
             color = TextDisabled
-        )
-    }
-}
-
-// ── Botón primario ───────────────────────────────────────────────────────────
-
-@Composable
-fun KadaiPrimaryButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    // El gradiente requiere un Box custom porque Button estándar de MD3
-    // no soporta directamente Brush como fondo
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-                brush = if (enabled) Brush.linearGradient(
-                    colors = listOf(Color(0xFF7C3AED), Color(0xFF9333EA))
-                ) else Brush.linearGradient(
-                    colors = listOf(Color(0xFF3A2D5F), Color(0xFF3A2D5F))
-                )
-            )
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f)
         )
     }
 }
