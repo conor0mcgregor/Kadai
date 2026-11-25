@@ -9,4 +9,5 @@ interface ChallengeRepository {
     suspend fun getActiveChallenge(): DailyChallenge?
     suspend fun getChallenge(challengeId: String): Challenge?
     suspend fun getChallengeHistory(): List<DailyChallenge>
+    suspend fun proposeChallenge(challenge: Challenge)
 }

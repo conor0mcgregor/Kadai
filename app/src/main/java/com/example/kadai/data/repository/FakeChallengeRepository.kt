@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class FakeChallengeRepository : ChallengeRepository {
 
     private val activeChallengeState = MutableStateFlow<DailyChallenge?>(MockData.activeChallenge)
+    private val challengesState = MutableStateFlow(MockData.challenges.toMutableList())
 
     override fun observeActiveChallenge(): Flow<DailyChallenge?> =
         activeChallengeState.asStateFlow()
@@ -19,8 +20,12 @@ class FakeChallengeRepository : ChallengeRepository {
         activeChallengeState.value
 
     override suspend fun getChallenge(challengeId: String): Challenge? =
-        MockData.challenges.find { it.challengeId == challengeId }
+        challengesState.value.find { it.challengeId == challengeId }
 
     override suspend fun getChallengeHistory(): List<DailyChallenge> =
         MockData.challengeHistory
+
+    override suspend fun proposeChallenge(challenge: Challenge) {
+        challengesState.value = (challengesState.value + challenge).toMutableList()
+    }
 }

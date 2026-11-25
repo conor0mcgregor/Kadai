@@ -8,7 +8,7 @@ data class Group(
     val adminId: String,
     val createdAt: Long = 0L,
     val status: GroupStatus = GroupStatus.ACTIVE,
-    val emoji: String = "🏆"
+    val inviteCode: String = ""
 )
 
 enum class GroupStatus { ACTIVE, ARCHIVED }
