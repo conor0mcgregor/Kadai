@@ -5,6 +5,7 @@ import com.example.kadai.domain.model.Group
 import com.example.kadai.domain.model.GroupStatus
 import com.example.kadai.domain.model.Membership
 import com.example.kadai.domain.model.MembershipStatus
+import com.example.kadai.domain.model.MemberRole
 import com.example.kadai.domain.repository.GroupRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +28,22 @@ class FakeGroupRepository : GroupRepository {
     override suspend fun getGroup(groupId: String): Group? =
         groupsState.value.find { it.groupId == groupId }
 
+    override suspend fun getAllGroups(): List<Group> =
+        groupsState.value.filter { it.status == GroupStatus.ACTIVE }
+
     override suspend fun getMembershipsForUser(userId: String): List<Membership> =
         membershipsState.value.filter { it.userId == userId && it.status == MembershipStatus.ACTIVE }
 
     override suspend fun getMembershipsForGroup(groupId: String): List<Membership> =
         membershipsState.value.filter { it.groupId == groupId && it.status == MembershipStatus.ACTIVE }
+
+    override suspend fun getAllMembershipsForGroup(groupId: String): List<Membership> =
+        membershipsState.value
+            .filter { it.groupId == groupId }
+            .sortedWith(
+                compareByDescending<Membership> { it.status == MembershipStatus.ACTIVE }
+                    .thenByDescending { it.role == MemberRole.ADMIN }
+            )
 
     override suspend fun createGroup(group: Group, adminMembership: Membership) {
         groupsState.value = (groupsState.value + group).toMutableList()
@@ -52,7 +64,10 @@ class FakeGroupRepository : GroupRepository {
     }
 
     override suspend fun addMember(membership: Membership) {
-        membershipsState.value = (membershipsState.value + membership).toMutableList()
+        val withoutDuplicates = membershipsState.value.filterNot {
+            it.groupId == membership.groupId && it.userId == membership.userId
+        }
+        membershipsState.value = (withoutDuplicates + membership).toMutableList()
     }
 
     override suspend fun removeMember(groupId: String, userId: String) {
