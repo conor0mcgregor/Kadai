@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.kadai.domain.model.DailyChallenge
 import com.example.kadai.domain.model.DailyChallengeStatus
 import com.example.kadai.domain.model.Group
+import com.example.kadai.domain.model.Proof
 import com.example.kadai.ui.base.KadaiViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,8 @@ class ChallengeDetailViewModel(
     private val _state = MutableStateFlow(ChallengeDetailUiState())
     val state = _state.asStateFlow()
 
+    private var job: Job? = null
+
     init {
         load()
     }
@@ -34,28 +38,41 @@ class ChallengeDetailViewModel(
     }
 
     private fun load() {
-        viewModelScope.launch {
-            runCatching { buildState() }
-                .onSuccess { _state.value = it }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = error.message ?: "No se pudo cargar el reto."
-                        )
-                    }
+        job?.cancel()
+        job = viewModelScope.launch {
+            combine(
+                challengeRepository.observeActiveChallenge(),
+                groupRepository.observeGroupsForUser(currentUserId),
+                proofRepository.observeProofsForChallenge(dailyChallengeId)
+            ) { daily, groups, proofs -> Triple(daily, groups, proofs) }
+                .collect { (active, groups, proofs) ->
+                    runCatching { buildState(active, groups, proofs) }
+                        .onSuccess { _state.value = it }
+                        .onFailure { error ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = error.message ?: "No se pudo cargar el reto."
+                                )
+                            }
+                        }
                 }
         }
     }
 
-    private suspend fun buildState(): ChallengeDetailUiState {
-        val daily = resolveDailyChallenge()
-            ?: error("El reto solicitado ya no está disponible.")
+    private suspend fun buildState(
+        active: DailyChallenge?,
+        groups: List<Group>,
+        proofs: List<Proof>
+    ): ChallengeDetailUiState {
+        val daily = when {
+            active?.dailyChallengeId == dailyChallengeId -> active
+            else -> challengeRepository.getChallengeHistory()
+                .firstOrNull { it.dailyChallengeId == dailyChallengeId }
+        } ?: error("El reto solicitado ya no está disponible.")
         val content = challengeRepository.getChallenge(daily.challengeId)
             ?: error("No se encontró el contenido del reto.")
-        val groups: List<Group> = groupRepository.observeGroupsForUser(currentUserId).first()
         val primaryGroup = groups.firstOrNull()
-        val proofs = proofRepository.observeProofsForChallenge(daily.dailyChallengeId).first()
         val myProof = proofs.firstOrNull { it.userId == currentUserId }
         val memberIds = primaryGroup
             ?.let { groupRepository.getMembershipsForGroup(it.groupId).map { member -> member.userId } }
@@ -81,12 +98,5 @@ class ChallengeDetailViewModel(
             participantsCount = participants,
             memberCount = memberIds.size
         )
-    }
-
-    private suspend fun resolveDailyChallenge(): DailyChallenge? {
-        val active = challengeRepository.getActiveChallenge()
-        if (active?.dailyChallengeId == dailyChallengeId) return active
-        return challengeRepository.getChallengeHistory()
-            .firstOrNull { it.dailyChallengeId == dailyChallengeId }
     }
 }

@@ -28,6 +28,8 @@ object Routes {
     fun invite(groupId: String) = "invite/$groupId"
     fun challengeDetail(dailyChallengeId: String) = "challenge_detail/$dailyChallengeId"
     fun groupProofs(groupId: String) = "group_proofs/$groupId"
-    fun proofDetail(proofId: String, groupId: String) = "proof_detail/$proofId?groupId=$groupId"
+    fun proofDetail(proofId: String, groupId: String) =
+        if (groupId.isBlank()) "proof_detail/$proofId"
+        else "proof_detail/$proofId?groupId=$groupId"
     fun challengeHistory(groupId: String) = "challenge_history/$groupId"
 }

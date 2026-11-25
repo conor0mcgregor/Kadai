@@ -64,8 +64,7 @@ fun KadaiNavHost(
                     navController.navigate(Routes.challengeDetail(dailyChallengeId))
                 },
                 onGroupsClick = { navController.navigate(Routes.GROUPS) },
-                onCreateGroupClick = { navController.navigate(Routes.CREATE_GROUP) },
-                onProfileClick = { /* P-17 pertenece al módulo 3.4, aún sin pantalla */ }
+                onCreateGroupClick = { navController.navigate(Routes.CREATE_GROUP) }
             )
         }
 

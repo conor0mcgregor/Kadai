@@ -80,8 +80,8 @@ class ChallengeHistoryViewModel(
                         totalPoints = it.totalPoints
                     )
                 },
-                hasValidation = validation != null,
-                isValid = validation?.isValid == true
+                hasValidation = validation != null || mine != null,
+                isValid = validation?.isValid ?: ((mine?.completionPoints ?: 0) > 0)
             )
         }
 

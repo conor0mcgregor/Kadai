@@ -77,7 +77,6 @@ fun HomeRoute(
     onChallengeClick: (dailyChallengeId: String) -> Unit,
     onGroupsClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
-    onProfileClick: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -87,7 +86,6 @@ fun HomeRoute(
         onChallengeClick = onChallengeClick,
         onGroupsClick = onGroupsClick,
         onCreateGroupClick = onCreateGroupClick,
-        onProfileClick = onProfileClick,
         onRetry = viewModel::retry
     )
 }
@@ -99,7 +97,6 @@ fun HomeScreen(
     onChallengeClick: (dailyChallengeId: String) -> Unit,
     onGroupsClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
-    onProfileClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -126,7 +123,6 @@ fun HomeScreen(
                 onChallengeClick = onChallengeClick,
                 onGroupsClick = onGroupsClick,
                 onCreateGroupClick = onCreateGroupClick,
-                onProfileClick = onProfileClick,
                 now = System.currentTimeMillis()
             )
         }
@@ -140,7 +136,6 @@ private fun HomeContent(
     onChallengeClick: (String) -> Unit,
     onGroupsClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
-    onProfileClick: () -> Unit,
     now: Long
 ) {
     val ticker by produceState(initialValue = now) {
@@ -161,8 +156,7 @@ private fun HomeContent(
             HomeHeader(
                 userName = state.userName,
                 userInitial = state.userInitial,
-                streakDays = state.streakDays,
-                onAvatarClick = onProfileClick
+                streakDays = state.streakDays
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -324,8 +318,7 @@ private fun BackgroundGlow() {
 private fun HomeHeader(
     userName: String,
     userInitial: String,
-    streakDays: Int,
-    onAvatarClick: () -> Unit
+    streakDays: Int
 ) {
     Row(
         modifier = Modifier
@@ -345,8 +338,7 @@ private fun HomeHeader(
                     .background(
                         Brush.linearGradient(colors = listOf(PurplePrimary, Color(0xFF9333EA)))
                     )
-                    .border(2.dp, PurpleSoft.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
-                    .clickable { onAvatarClick() },
+                    .border(2.dp, PurpleSoft.copy(alpha = 0.45f), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -762,7 +754,6 @@ private fun HomeScreenPreview() {
             onChallengeClick = {},
             onGroupsClick = {},
             onCreateGroupClick = {},
-            onProfileClick = {},
             onRetry = {}
         )
     }
